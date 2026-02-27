@@ -3,6 +3,7 @@ package com.quickfood.deliveryservice.security;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
@@ -25,7 +26,7 @@ public class SecurityConfig {
                 session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
                 // Internal endpoint — called by core-service within Docker network
-                .requestMatchers("POST", "/api/delivery/shipments").permitAll()
+                .requestMatchers(HttpMethod.POST, "/api/delivery/shipments").permitAll()
                 // All other delivery endpoints require SHIPPER role
                 .requestMatchers("/api/delivery/**").hasRole("SHIPPER")
                 .anyRequest().authenticated()

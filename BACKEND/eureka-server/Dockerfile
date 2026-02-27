@@ -1,26 +1,23 @@
-# syntax=docker/dockerfile:1
-FROM eclipse-temurin:21-jdk-alpine AS builder
+# Stage 1: Build
+FROM maven:3.9-eclipse-temurin-21 AS builder
 
 WORKDIR /app
 
-# Copy dependency files first
+# Copy dependency files first for better caching
+COPY pom.xml ./
 COPY .mvn/ .mvn
-COPY mvnw pom.xml ./
+COPY mvnw ./
 RUN chmod +x ./mvnw
 
-# ✅ Cache Maven dependencies với BuildKit
-RUN --mount=type=cache,target=/root/.m2 \
-    ./mvnw dependency:go-offline -B
+# Download dependencies (cached layer)
+RUN mvn dependency:go-offline -B
 
-# Copy source
+# Copy source and build
 COPY src ./src
+RUN mvn clean package -DskipTests -B
 
-# ✅ Build với cached dependencies
-RUN --mount=type=cache,target=/root/.m2 \
-    ./mvnw clean install -DskipTests -B
-
-# Runtime stage
-FROM eclipse-temurin:21-jre-alpine
+# Stage 2: Runtime
+FROM eclipse-temurin:21-jre
 WORKDIR /app
 COPY --from=builder /app/target/*.jar app.jar
 

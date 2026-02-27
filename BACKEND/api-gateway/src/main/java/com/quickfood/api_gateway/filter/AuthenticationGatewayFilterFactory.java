@@ -95,11 +95,16 @@ public class AuthenticationGatewayFilterFactory extends AbstractGatewayFilterFac
         HttpMethod method = request.getMethod();
 
         // ✅ 1. Auth endpoints
-        if (path.startsWith("/api/v1/auth/")) {
+        if (path.startsWith("/api/core/auth/")) {
             return true;
         }
 
-        // ✅ 6. Health check
+        // ✅ 2. Public product listing (GET only)
+        if (path.startsWith("/api/core/products") && HttpMethod.GET.equals(method)) {
+            return true;
+        }
+
+        // ✅ 3. Health check
         if (path.startsWith("/actuator/health")) {
             return true;
         }
