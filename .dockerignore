@@ -1,0 +1,8 @@
+# .dockerignore (đặt ở root folder)
+**/node_modules
+**/target
+**/.git
+**/.idea
+**/*.log
+**/dist
+**/build
