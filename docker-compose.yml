@@ -2,30 +2,26 @@ version: '3.8'
 
 services:
   # ============================================
-  # DATABASE SERVICE
+  # DATABASE SERVICE (POSTGRESQL + POSTGIS)
   # ============================================
-  mysql-db:
-    image: mysql:8.0
-    container_name: techshop-mysql
+  postgres-db:
+    image: postgis/postgis:16-3.4
+    container_name: quickfood-postgres
     restart: always
     environment:
-      MYSQL_ROOT_PASSWORD: rootpassword
-      MYSQL_DATABASE: techshop_db
-      MYSQL_USER: user
-      MYSQL_PASSWORD: 1
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: 1
     ports:
-      - "3306:3306"
+      - "5432:5432"
     volumes:
-      - mysql-data:/var/lib/mysql
-      - ./dumps/TechShopDB.sql:/docker-entrypoint-initdb.d/01-init.sql
+      - postgres-data:/var/lib/postgresql/data
     networks:
-      - techshop-network
+      - quickfood-network
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-prootpassword"]
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
       interval: 10s
       timeout: 5s
-      retries: 10
-      start_period: 30s
+      retries: 5
 
   # ============================================
   # INFRASTRUCTURE SERVICES
@@ -36,106 +32,35 @@ services:
     ports:
       - "8761:8761"
     networks:
-      - techshop-network
-    healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8761/actuator/health"]
-      interval: 10s
-      timeout: 5s
-      retries: 10
-      start_period: 30s
+      - quickfood-network
 
   config-server:
     build: ./BACKEND/config-server
     container_name: config-server
     ports:
       - "8888:8888"
-    environment:
-      - GIT_SSH_PRIVATE_KEY=${GIT_SSH_PRIVATE_KEY}
     depends_on:
-      discovery-service:
-        condition: service_healthy
+      - discovery-service
     networks:
-      - techshop-network
-    restart: on-failure
-    healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8888/actuator/health"]
-      interval: 10s
-      timeout: 5s
-      retries: 10
-      start_period: 30s
+      - quickfood-network
 
-    
-    volumes:
-      # ✅ Persist trained models
-      - recommend-models:/app/models
-      
-      # ✅ Persist training data (accumulated interactions)
-      - recommend-data:/app/data
-      
-      # ✅ Mount BASE CSV data (giả lập - read-only)
-      # Uncomment nếu bạn có file CSV trong thư mục recommend-service/initial-data/
-      # - ./recommend-service/initial-data/interactions.csv:/app/data/interactions.csv:ro
-      # - ./recommend-service/initial-data/products.csv:/app/data/products.csv:ro
-    
-    depends_on:
-      discovery-service:
-        condition: service_healthy
-      product-service:
-        condition: service_healthy
-      admin-service:
-        condition: service_healthy
-    
-    networks:
-      - techshop-network
-    
-    restart: on-failure
-    
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8086/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 5
-      start_period: 60s  # Python startup takes longer
-
-  # ============================================
-  # API GATEWAY
-  # ============================================
   api-gateway:
-    build: 
-      context: ./BACKEND/api-gateway
-      dockerfile: Dockerfile
+    build: ./BACKEND/api-gateway
     container_name: api-gateway
     ports:
       - "8080:8080"
     environment:
-      - SPRING_PROFILES_ACTIVE=docker
       - EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE=http://discovery-service:8761/eureka/
     depends_on:
-      discovery-service:
-        condition: service_healthy
-      config-server:
-        condition: service_healthy
+      - discovery-service
+      - config-server
     networks:
-      - techshop-network
-    restart: on-failure
-    healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8080/actuator/health"]
-      interval: 10s
-      timeout: 5s
-      retries: 10
-      start_period: 30s
+      - quickfood-network
 
-# ============================================
-# NETWORKS
-# ============================================
 networks:
-  techshop-network:
+  quickfood-network:
     driver: bridge
 
-# ============================================
-# VOLUMES (PERSISTENT STORAGE)
-# ============================================
 volumes:
-  # MySQL data persistence
-  mysql-data:
+  postgres-data:
     driver: local
