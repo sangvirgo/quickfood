@@ -1,0 +1,107 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: api-gateway
+  main:
+    web-application-type: reactive
+  config:
+    import: "optional:configserver:http://config-server:8888"
+  cloud:
+    gateway:
+      routes:
+        # === OAuth2 Route (ƯU TIÊN CAO NHẤT) ===
+        - id: oauth2-route
+          uri: lb://user-service
+          predicates:
+            - Path=/oauth2/**, /login/oauth2/**
+          filters:
+            - StripPrefix=0
+
+        # THÊM: Internal Admin Export Routes (KHÔNG cần Authentication filter)
+        - id: internal-admin-export-route
+          uri: lb://admin-service
+          predicates:
+            - Path=/api/v1/internal/admin/**
+          filters:
+            - StripPrefix=0
+
+        # === 1. User Service Route ===
+        - id: user-service-route
+          uri: lb://user-service
+          predicates:
+            - Path=/api/v1/auth/**, /api/v1/users/**, /api/v1/interactions/**
+          filters:
+            - StripPrefix=0
+            - Authentication
+
+        # === 2. Product Service Route ===
+        - id: product-service-route
+          uri: lb://product-service
+          predicates:
+            - Path=/api/v1/products/**, /api/v1/categories/**, /api/v1/images/**, /api/v1/reviews/**
+          filters:
+            - StripPrefix=0
+            - Authentication
+
+        # === 3. Order Service Route ===
+        - id: order-service-route
+          uri: lb://order-service
+          predicates:
+            - Path=/api/v1/cart/**, /api/v1/orders/**, /api/v1/payment/**
+          filters:
+            - StripPrefix=0
+            - Authentication
+
+        # === 4. Admin Service Route ===
+        - id: admin-service-route
+          uri: lb://admin-service
+          predicates:
+            - Path=/api/v1/admin/**
+          filters:
+            - StripPrefix=0
+            - Authentication
+            
+        # === 5. Recommend Service Route (THÊM MỚI) ===
+        - id: recommend-service-internal
+          uri: lb://RECOMMEND-SERVICE
+          predicates:
+            - Path=/api/v1/internal/recommend/**
+          filters:
+            - StripPrefix=0
+
+      globalcors:
+        cors-configurations:
+          '[/**]':
+            allowed-origins:
+              - "http://localhost:5173"
+              - "http://localhost:5174"
+              - "http://localhost:5175"
+              - "https://*.vercel.app"
+              # ✅ Thêm VNPay origin nếu cần (thường không cần vì VNPay redirect)
+              - "https://sandbox.vnpayment.vn"
+            allowed-methods:
+              - "GET"
+              - "POST"
+              - "PUT"
+              - "DELETE"
+              - "PATCH"
+              - "OPTIONS"
+            allowed-headers: "*"
+            allow-credentials: true
+            max-age: 3600
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://discovery-service:8761/eureka/
+    fetch-registry: true
+    register-with-eureka: true
+  instance:
+    prefer-ip-address: true
+
+# ✅ Thêm JWT secret nếu chưa có
+auth:
+  token:
+    jwtSecret: VLOQmJ8TkXNXxN5b4cw2sjdRj4M0Amh1GjCNGZj59xLOvC1ojGUQnFcYbghvJgQRaFcYfHEqIyg8M1PZmr9A
