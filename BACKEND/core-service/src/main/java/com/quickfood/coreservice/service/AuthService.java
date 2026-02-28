@@ -1,16 +1,21 @@
 package com.quickfood.coreservice.service;
 
+import com.quickfood.coreservice.client.DeliveryClient;
 import com.quickfood.coreservice.dto.auth.LoginRequest;
 import com.quickfood.coreservice.dto.auth.LoginResponse;
 import com.quickfood.coreservice.dto.auth.RegisterRequest;
+import com.quickfood.coreservice.dto.delivery.ShipperProfileRequest;
+import com.quickfood.coreservice.entity.Role;
 import com.quickfood.coreservice.entity.User;
 import com.quickfood.coreservice.exception.BadRequestException;
 import com.quickfood.coreservice.repository.UserRepository;
 import com.quickfood.coreservice.security.JwtUtil;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class AuthService {
@@ -18,6 +23,7 @@ public class AuthService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
+    private final DeliveryClient deliveryClient;
 
     public User register(RegisterRequest request) {
         if (userRepository.existsByEmail(request.getEmail())) {
@@ -31,7 +37,25 @@ public class AuthService {
                 .role(request.getRole())
                 .build();
 
-        return userRepository.save(user);
+        user = userRepository.save(user);
+
+        // If the user is a SHIPPER, create a Shipper profile in delivery-service
+        if (Role.SHIPPER.equals(request.getRole())) {
+            try {
+                ShipperProfileRequest profileRequest = ShipperProfileRequest.builder()
+                        .userId(user.getId())
+                        .name(user.getName())
+                        .phone(request.getPhone() != null ? request.getPhone() : "N/A")
+                        .build();
+                deliveryClient.createShipperProfile(profileRequest);
+                log.info("Shipper profile created in delivery-service for userId: {}", user.getId());
+            } catch (Exception e) {
+                log.error("Failed to create shipper profile in delivery-service for userId {}: {}", user.getId(), e.getMessage());
+                // Don't rollback — user is registered, shipper profile can be created later
+            }
+        }
+
+        return user;
     }
 
     public LoginResponse login(LoginRequest request) {

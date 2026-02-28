@@ -136,6 +136,14 @@ public class OrderService {
         return toResponse(order, orderItemRepository.findByOrderId(orderId));
     }
 
+    @Transactional
+    public OrderResponse markDelivered(Long orderId) {
+        Order order = findOrder(orderId);
+        order.setStatus(OrderStatus.DELIVERED);
+        order = orderRepository.save(order);
+        return toResponse(order, orderItemRepository.findByOrderId(orderId));
+    }
+
     public TrackingResponse getTracking(Long orderId) {
         // Ensure order exists
         findOrder(orderId);

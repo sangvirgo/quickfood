@@ -54,6 +54,8 @@ public class SecurityConfig {
                 .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html").permitAll()
                 // Public auth endpoints
                 .requestMatchers("/api/core/auth/**").permitAll()
+                // Internal delivery callback — called by delivery-service (Docker internal network)
+                .requestMatchers(HttpMethod.PUT, "/api/core/orders/*/delivered").permitAll()
                 // Public product read endpoints
                 .requestMatchers(HttpMethod.GET, "/api/core/products").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/core/products/{id}").permitAll()

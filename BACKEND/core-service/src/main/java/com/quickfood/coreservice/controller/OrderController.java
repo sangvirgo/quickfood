@@ -70,6 +70,15 @@ public class OrderController {
     }
 
     /**
+     * INTERNAL — called by delivery-service when shipment is completed.
+     * Transitions order status to DELIVERED.
+     */
+    @PutMapping("/{orderId}/delivered")
+    public ResponseEntity<OrderResponse> markDelivered(@PathVariable Long orderId) {
+        return ResponseEntity.ok(orderService.markDelivered(orderId));
+    }
+
+    /**
      * CUSTOMER tracks their shipment via delivery-service.
      */
     @GetMapping("/{id}/tracking")

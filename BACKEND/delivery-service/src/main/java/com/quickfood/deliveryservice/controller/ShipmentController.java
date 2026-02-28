@@ -2,6 +2,7 @@ package com.quickfood.deliveryservice.controller;
 
 import com.quickfood.deliveryservice.dto.CreateShipmentRequest;
 import com.quickfood.deliveryservice.dto.ShipmentResponse;
+import com.quickfood.deliveryservice.dto.TrackingResponse;
 import com.quickfood.deliveryservice.service.ShipmentService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -41,6 +42,15 @@ public class ShipmentController {
     @GetMapping("/{id}")
     public ResponseEntity<ShipmentResponse> getById(@PathVariable Long id) {
         return ResponseEntity.ok(shipmentService.getShipment(id));
+    }
+
+    /**
+     * INTERNAL — called by core-service to get tracking info for an order.
+     * Uses orderId (NOT shipment ID) to find the shipment.
+     */
+    @GetMapping("/{orderId}/tracking")
+    public ResponseEntity<TrackingResponse> getTracking(@PathVariable Long orderId) {
+        return ResponseEntity.ok(shipmentService.getTracking(orderId));
     }
 
     /**

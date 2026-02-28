@@ -29,28 +29,50 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request,
                                     HttpServletResponse response,
                                     FilterChain filterChain) throws ServletException, IOException {
-        String token = extractToken(request);
+
+        // ── Path 1: request came through the API Gateway ──────────────────────
+        // The gateway validates the JWT and forwards X-User-Id + Authorization header.
+        // We read from the Authorization header (gateway re-forwards it), OR fall back
+        // to just the X-User-Id header for internal service-to-service calls.
+        String xUserId = request.getHeader("X-User-Id");
+        String token   = extractToken(request);
 
         if (StringUtils.hasText(token)) {
+            // ── Path 1a: Bearer JWT present — validate it directly ─────────────
             try {
                 Claims claims = jwtUtil.validateToken(token);
                 Long userId = claims.get("id", Long.class);
                 String role = claims.get("role", String.class);
 
-                UsernamePasswordAuthenticationToken authentication =
-                        new UsernamePasswordAuthenticationToken(
-                                userId,
-                                null,
-                                List.of(new SimpleGrantedAuthority("ROLE_" + role))
-                        );
-
-                SecurityContextHolder.getContext().setAuthentication(authentication);
+                setAuthentication(userId, role);
+                log.debug("JWT auth: userId={}, role={}", userId, role);
             } catch (JwtException | IllegalArgumentException e) {
                 log.warn("Invalid JWT token: {}", e.getMessage());
+            }
+        } else if (StringUtils.hasText(xUserId)) {
+            // ── Path 1b: No Bearer token, but X-User-Id present ───────────────
+            // This is an internal call (e.g., delivery-service calling /delivered).
+            // We authenticate as a system principal with no role restrictions.
+            try {
+                Long userId = Long.parseLong(xUserId);
+                setAuthentication(userId, "SYSTEM");
+                log.debug("X-User-Id auth: userId={}", userId);
+            } catch (NumberFormatException e) {
+                log.warn("Invalid X-User-Id header: {}", xUserId);
             }
         }
 
         filterChain.doFilter(request, response);
+    }
+
+    private void setAuthentication(Long userId, String role) {
+        UsernamePasswordAuthenticationToken authentication =
+                new UsernamePasswordAuthenticationToken(
+                        userId,
+                        null,
+                        List.of(new SimpleGrantedAuthority("ROLE_" + role))
+                );
+        SecurityContextHolder.getContext().setAuthentication(authentication);
     }
 
     private String extractToken(HttpServletRequest request) {

@@ -3,6 +3,7 @@ package com.quickfood.deliveryservice.service;
 import com.quickfood.deliveryservice.client.CoreServiceClient;
 import com.quickfood.deliveryservice.dto.CreateShipmentRequest;
 import com.quickfood.deliveryservice.dto.ShipmentResponse;
+import com.quickfood.deliveryservice.dto.TrackingResponse;
 import com.quickfood.deliveryservice.entity.Shipment;
 import com.quickfood.deliveryservice.entity.ShipmentStatus;
 import com.quickfood.deliveryservice.entity.Shipper;
@@ -68,6 +69,37 @@ public class ShipmentService {
         Shipment shipment = shipmentRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Shipment not found: " + id));
         return toResponse(shipment);
+    }
+
+    // ─── INTERNAL: tracking by orderId ────────────────────────────────────────
+
+    @Transactional(readOnly = true)
+    public TrackingResponse getTracking(Long orderId) {
+        Shipment shipment = shipmentRepository.findByOrderId(orderId)
+                .orElseThrow(() -> new RuntimeException("No shipment found for orderId: " + orderId));
+
+        String shipperName = null;
+        Double lat = null;
+        Double lng = null;
+
+        if (shipment.getShipperId() != null) {
+            Shipper shipper = shipperRepository.findById(shipment.getShipperId()).orElse(null);
+            if (shipper != null) {
+                shipperName = shipper.getName();
+                if (shipper.getCurrentLocation() != null) {
+                    lat = shipper.getCurrentLocation().getY();
+                    lng = shipper.getCurrentLocation().getX();
+                }
+            }
+        }
+
+        return TrackingResponse.builder()
+                .orderId(orderId)
+                .shipperName(shipperName)
+                .status(shipment.getStatus().name())
+                .latitude(lat)
+                .longitude(lng)
+                .build();
     }
 
     // ─── SHIPPER: accept (pessimistic lock) ───────────────────────────────────

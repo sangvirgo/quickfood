@@ -25,8 +25,11 @@ public class SecurityConfig {
             .sessionManagement(session ->
                 session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
-                // Internal endpoint — called by core-service within Docker network
+                .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html").permitAll()
+                // Internal endpoints — called by core-service within Docker network (no SHIPPER token)
                 .requestMatchers(HttpMethod.POST, "/api/delivery/shipments").permitAll()
+                .requestMatchers(HttpMethod.POST, "/api/delivery/shippers/internal/register").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/delivery/shipments/*/tracking").permitAll()
                 // All other delivery endpoints require SHIPPER role
                 .requestMatchers("/api/delivery/**").hasRole("SHIPPER")
                 .anyRequest().authenticated()

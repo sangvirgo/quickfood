@@ -9,4 +9,5 @@ public class RegisterRequest {
     private String email;
     private String password;
     private Role role;
+    private String phone; // used when role=SHIPPER to create Shipper profile
 }

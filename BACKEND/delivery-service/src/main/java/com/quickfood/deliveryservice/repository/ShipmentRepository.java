@@ -16,6 +16,8 @@ public interface ShipmentRepository extends JpaRepository<Shipment, Long> {
 
     List<Shipment> findByStatus(ShipmentStatus status);
 
+    Optional<Shipment> findByOrderId(Long orderId);
+
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("SELECT s FROM Shipment s WHERE s.id = :id")
     Optional<Shipment> findByIdWithLock(Long id);

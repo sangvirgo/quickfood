@@ -1,5 +1,6 @@
 package com.quickfood.deliveryservice.service;
 
+import com.quickfood.deliveryservice.dto.RegisterShipperRequest;
 import com.quickfood.deliveryservice.dto.ShipperResponse;
 import com.quickfood.deliveryservice.dto.UpdateLocationRequest;
 import com.quickfood.deliveryservice.entity.Shipper;
@@ -21,6 +22,25 @@ public class ShipperService {
 
     private static final GeometryFactory GEOMETRY_FACTORY =
             new GeometryFactory(new PrecisionModel(), 4326);
+
+    /**
+     * INTERNAL — called by core-service on SHIPPER registration.
+     * Creates a Shipper profile in the delivery DB, idempotent.
+     */
+    @Transactional
+    public ShipperResponse registerShipper(RegisterShipperRequest request) {
+        return shipperRepository.findByUserId(request.getUserId())
+                .map(this::toResponse)
+                .orElseGet(() -> {
+                    Shipper shipper = Shipper.builder()
+                            .userId(request.getUserId())
+                            .name(request.getName())
+                            .phone(request.getPhone() != null ? request.getPhone() : "N/A")
+                            .isBusy(false)
+                            .build();
+                    return toResponse(shipperRepository.save(shipper));
+                });
+    }
 
     @Transactional
     public ShipperResponse updateLocation(UpdateLocationRequest request) {
