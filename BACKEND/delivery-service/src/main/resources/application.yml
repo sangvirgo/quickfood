@@ -4,8 +4,7 @@ server:
 spring:
   application:
     name: delivery-service
-  config:
-    import: "optional:configserver:"
+
   datasource:
     url: jdbc:postgresql://postgres-db:5432/quickfood_delivery
     username: postgres

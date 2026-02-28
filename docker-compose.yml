@@ -35,16 +35,6 @@ services:
     networks:
       - quickfood-network
 
-  config-server:
-    build: ./BACKEND/config-server
-    container_name: config-server
-    ports:
-      - "8888:8888"
-    depends_on:
-      - discovery-service
-    networks:
-      - quickfood-network
-
   api-gateway:
     build: ./BACKEND/api-gateway
     container_name: api-gateway
@@ -54,7 +44,6 @@ services:
       - EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE=http://discovery-service:8761/eureka/
     depends_on:
       - discovery-service
-      - config-server
     networks:
       - quickfood-network
 
