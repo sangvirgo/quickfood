@@ -47,7 +47,8 @@ public class OrderService {
         // Save the order first to get the generated ID
         Order order = Order.builder()
                 .customerId(customerId)
-                .totalPrice(BigDecimal.ZERO) // will update after items
+                .totalPrice(BigDecimal.ZERO)
+                .deliveryAddress(request.getDeliveryAddress())  // ✅ Thêm dòng này
                 .status(OrderStatus.PENDING)
                 .build();
         order = orderRepository.save(order);
@@ -126,6 +127,8 @@ public class OrderService {
             ShipmentRequest shipmentRequest = ShipmentRequest.builder()
                     .orderId(order.getId())
                     .customerId(order.getCustomerId())
+                    .deliveryAddress(order.getDeliveryAddress())  // ✅ Thêm dòng này
+                    // Optional: có thể parse address thành lat/lng nếu có geocoding service
                     .build();
             deliveryClient.createShipment(shipmentRequest);
         } catch (Exception e) {

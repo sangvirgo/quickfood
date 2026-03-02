@@ -12,4 +12,7 @@ import lombok.NoArgsConstructor;
 public class ShipmentRequest {
     private Long orderId;
     private Long customerId;
+    private String deliveryAddress;     // ✅ Thêm field này
+    private Double destinationLat;      // ✅ Thêm field này
+    private Double destinationLng;      // ✅ Thêm field này
 }
