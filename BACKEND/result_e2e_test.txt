@@ -1,0 +1,94 @@
+~/o i i/BACKEND main
+❯ bash e2e_test.sh  
+
+========================================
+ QuickFood E2E Test — Thứ hai, 02 Tháng 3 năm 2026 07:50:28 +07
+========================================
+
+── STEP 1: Register CUSTOMER
+  Status: 201 | Body: {"id":1,"name":"Customer1","email":"customer1@test.com","role":"CUSTOMER"}
+✅ PASS [1-Register CUSTOMER] Status: 201
+
+── STEP 2: Register STAFF
+  Status: 201 | Body: {"id":2,"name":"Staff1","email":"staff1@test.com","role":"STAFF"}
+✅ PASS [2-Register STAFF] Status: 201
+
+── STEP 3: Register SHIPPER
+  Status: 201 | Body: {"id":3,"name":"Shipper1","email":"shipper1@test.com","role":"SHIPPER"}
+✅ PASS [3-Register SHIPPER] Status: 201
+
+── STEP 4a: Login CUSTOMER
+  Status: 200 | Body: {"token":"eyJhbGciOiJIUzM4NCJ9.eyJzdWIiOiIxIiwiaWQiOjEsInJvbGUiOiJDVVNUT01FUiIsImlhdCI6MTc3MjQxMjYzMiwiZXhwIjoxNzcyNDk5MDMyfQ.vmMuaVzBbiq_j63jzpN6CUe8YI5kdbZVIWtoF8w1GjKVUdgxh8dosiYZ33FDXzMk","type":"Bearer","id":1,"email":"customer1@test.com","role":"CUSTOMER"}
+✅ PASS [4a-Login CUSTOMER] Status: 200
+  Token: eyJhbGciOiJIUzM4NCJ9.eyJzdWIiOiIxIiwiaWQ...
+
+── STEP 4b: Login STAFF
+  Status: 200 | Body: {"token":"eyJhbGciOiJIUzM4NCJ9.eyJzdWIiOiIyIiwiaWQiOjIsInJvbGUiOiJTVEFGRiIsImlhdCI6MTc3MjQxMjYzMiwiZXhwIjoxNzcyNDk5MDMyfQ.AGHod7mFPLTff7_mEp2VUGWFbH3gTgoB_EDD0zLLdWe1cZgvmPOozAI1GSih0ury","type":"Bearer","id":2,"email":"staff1@test.com","role":"STAFF"}
+✅ PASS [4b-Login STAFF] Status: 200
+  Token: eyJhbGciOiJIUzM4NCJ9.eyJzdWIiOiIyIiwiaWQ...
+
+── STEP 4c: Login SHIPPER
+  Status: 200 | Body: {"token":"eyJhbGciOiJIUzM4NCJ9.eyJzdWIiOiIzIiwiaWQiOjMsInJvbGUiOiJTSElQUEVSIiwiaWF0IjoxNzcyNDEyNjMyLCJleHAiOjE3NzI0OTkwMzJ9.RUkJQg7s9TT1Zht5G0EF0O2kzcuSvfdJqiRDYRNc1vdrYHr8FVHbeuhkiiguiyYB","type":"Bearer","id":3,"email":"shipper1@test.com","role":"SHIPPER"}
+✅ PASS [4c-Login SHIPPER] Status: 200
+  Token: eyJhbGciOiJIUzM4NCJ9.eyJzdWIiOiIzIiwiaWQ...
+
+── STEP 5: STAFF — Create product
+  Status: 201 | Body: {"id":1,"name":"Burger","price":9.99,"stock":100,"imageUrl":null,"available":true}
+✅ PASS [5-Create Product] Status: 201
+  Product ID: 1
+
+── STEP 6: PUBLIC — Get all products
+  Status: 200 | Body: [{"id":1,"name":"Burger","price":9.99,"stock":100,"imageUrl":null,"available":true}]
+✅ PASS [6-Get Products] Status: 200
+
+── STEP 7: CUSTOMER — Place order
+  Status: 201 | Body: {"id":1,"customerId":1,"totalPrice":19.98,"status":"PENDING","createdAt":"2026-03-02T00:50:33.422683","items":[{"id":1,"productId":1,"productName":"Burger","quantity":2,"unitPrice":9.99,"subtotal":19.98}]}
+✅ PASS [7-Place Order] Status: 201
+  Order ID: 1
+
+── STEP 8: CUSTOMER — Get order history
+  Status: 200 | Body: [{"id":1,"customerId":1,"totalPrice":19.98,"status":"PENDING","createdAt":"2026-03-02T00:50:33.422683","items":[{"id":1,"productId":1,"productName":"Burger","quantity":2,"unitPrice":9.99,"subtotal":19.98}]}]
+✅ PASS [8-Order History] Status: 200
+
+── STEP 9: STAFF — Get pending orders
+  Status: 200 | Body: [{"id":1,"customerId":1,"totalPrice":19.98,"status":"PENDING","createdAt":"2026-03-02T00:50:33.422683","items":[{"id":1,"productId":1,"productName":"Burger","quantity":2,"unitPrice":9.99,"subtotal":19.98}]}]
+✅ PASS [9-Pending Orders] Status: 200
+
+── STEP 10: STAFF — Mark order READY (triggers shipment)
+  Status: 200 | Body: {"id":1,"customerId":1,"totalPrice":19.98,"status":"READY","createdAt":"2026-03-02T00:50:33.422683","items":[{"id":1,"productId":1,"productName":"Burger","quantity":2,"unitPrice":9.99,"subtotal":19.98}]}
+✅ PASS [10-Order Ready] Status: 200
+
+  Waiting 2s for shipment to be created...
+
+── STEP 11: SHIPPER — Get available shipments
+  Status: 200 | Body: [{"acceptedAt":null,"completedAt":null,"deliveryAddress":"123 Main St, Ho Chi Minh City","destinationLat":null,"destinationLng":null,"id":1,"orderId":1,"shipperId":null,"status":"WAITING"}]
+✅ PASS [11-Available Shipments] Status: 200
+  Shipment ID: 1
+
+── STEP 12: SHIPPER — Accept shipment (pessimistic lock test)
+  Status: 200 | Body: {"acceptedAt":"2026-03-02T00:50:36.200848783","completedAt":null,"deliveryAddress":"123 Main St, Ho Chi Minh City","destinationLat":null,"destinationLng":null,"id":1,"orderId":1,"shipperId":1,"status":"DELIVERING"}
+✅ PASS [12-Accept Shipment] Status: 200
+
+── STEP 13: SHIPPER — Update location
+  Status: 200 | Body: {"busy":true,"currentLat":10.762622,"currentLng":106.660172,"id":1,"name":"Shipper1","phone":"N/A","userId":3}
+✅ PASS [13-Update Location] Status: 200
+
+── STEP 14: CUSTOMER — Track order
+  Status: 200 | Body: {"orderId":1,"shipperName":"Shipper1","status":"DELIVERING","latitude":10.762622,"longitude":106.660172}
+✅ PASS [14-Track Order] Status: 200
+
+── STEP 15: SHIPPER — Complete shipment
+  Status: 200 | Body: {"acceptedAt":"2026-03-02T00:50:36.200849","completedAt":"2026-03-02T00:50:37.288746349","deliveryAddress":"123 Main St, Ho Chi Minh City","destinationLat":null,"destinationLng":null,"id":1,"orderId":1,"shipperId":1,"status":"DELIVERED"}
+✅ PASS [15-Complete Shipment] Status: 200
+
+  Waiting 1s for order status propagation...
+
+── STEP 16: CUSTOMER — Verify order is DELIVERED
+  Status: 200 | Body: {"id":1,"customerId":1,"totalPrice":19.98,"status":"DELIVERED","createdAt":"2026-03-02T00:50:33.422683","items":[{"id":1,"productId":1,"productName":"Burger","quantity":2,"unitPrice":9.99,"subtotal":19.98}]}
+✅ PASS [16-Order Delivered] Status: 200
+  ✅ PASS Order status is DELIVERED ✓
+
+========================================
+ E2E Test Complete
+========================================
+
