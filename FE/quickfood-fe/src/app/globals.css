@@ -1,0 +1,191 @@
+@import "tailwindcss";
+
+/* ─────────────────────────────────────────────
+   QuickFood Design Tokens (Tailwind v4 @theme)
+   ───────────────────────────────────────────── */
+@theme {
+  /* Colors */
+  --color-qf-bg: #FAF7F2;
+  --color-qf-surface: #FFFFFF;
+  --color-qf-primary: #E8521A;
+  --color-qf-primary-hover: #C94412;
+  --color-qf-secondary: #1C1917;
+  --color-qf-muted: #78716C;
+  --color-qf-border: #E7E0D8;
+  --color-qf-accent: #F5E6D3;
+
+  /* Fonts */
+  --font-display: var(--font-playfair), Georgia, serif;
+  --font-sans: var(--font-dm-sans), system-ui, sans-serif;
+
+  /* Border radius */
+  --radius-qf: 12px;
+
+  /* Box shadows */
+  --shadow-qf-card: 0 2px 8px rgba(28, 25, 23, 0.06);
+  --shadow-qf-card-hover: 0 4px 16px rgba(28, 25, 23, 0.12);
+
+  /* Animations */
+  --animate-fade-in: fadeIn 200ms ease-out;
+  --animate-slide-up: slideUp 250ms ease-out;
+  --animate-scale-in: scaleIn 200ms ease-out;
+  --animate-shake: shake 400ms ease-in-out;
+  --animate-pulse-dot: pulseDot 2s ease-in-out infinite;
+
+  /* Keyframes */
+  @keyframes fadeIn {
+    0%   { opacity: 0; }
+    100% { opacity: 1; }
+  }
+
+  @keyframes slideUp {
+    0%   { opacity: 0; transform: translateY(8px); }
+    100% { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes scaleIn {
+    0%   { opacity: 0; transform: scale(0.95); }
+    100% { opacity: 1; transform: scale(1); }
+  }
+
+  @keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    20%      { transform: translateX(-6px); }
+    40%      { transform: translateX(6px); }
+    60%      { transform: translateX(-4px); }
+    80%      { transform: translateX(4px); }
+  }
+
+  @keyframes pulseDot {
+    0%, 100% { transform: scale(1);   opacity: 1; }
+    50%      { transform: scale(1.4); opacity: 0.7; }
+  }
+}
+
+/* ─────────────────────────────────────────────
+   Base Reset
+   ───────────────────────────────────────────── */
+@layer base {
+  * {
+    box-sizing: border-box;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    font-family: var(--font-sans);
+    background-color: var(--color-qf-bg);
+    color: var(--color-qf-secondary);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  input,
+  textarea,
+  select {
+    outline: none;
+  }
+
+  input:focus,
+  textarea:focus,
+  select:focus {
+    ring-width: 2px;
+    ring-color: color-mix(in srgb, var(--color-qf-primary) 30%, transparent);
+    border-color: var(--color-qf-primary);
+  }
+}
+
+/* ─────────────────────────────────────────────
+   Reusable Components
+   ───────────────────────────────────────────── */
+@layer components {
+  /* Input */
+  .qf-input {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    background-color: white;
+    border: 1px solid var(--color-qf-border);
+    border-radius: 0.5rem;
+    color: var(--color-qf-secondary);
+    font-size: 0.875rem;
+    transition: all 150ms;
+  }
+  .qf-input::placeholder {
+    color: var(--color-qf-muted);
+  }
+  .qf-input:focus {
+    outline: none;
+    border-color: var(--color-qf-primary);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-qf-primary) 20%, transparent);
+  }
+
+  /* Primary button */
+  .qf-btn-primary {
+    width: 100%;
+    padding: 0.75rem 1.5rem;
+    background-color: var(--color-qf-primary);
+    color: white;
+    font-weight: 500;
+    border-radius: 0.5rem;
+    border: none;
+    cursor: pointer;
+    transition: all 150ms;
+  }
+  .qf-btn-primary:hover {
+    background-color: var(--color-qf-primary-hover);
+  }
+  .qf-btn-primary:active {
+    transform: scale(0.98);
+  }
+  .qf-btn-primary:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+  }
+
+  /* Secondary button */
+  .qf-btn-secondary {
+    padding: 0.75rem 1.5rem;
+    border: 1px solid var(--color-qf-border);
+    color: var(--color-qf-secondary);
+    font-weight: 500;
+    border-radius: 0.5rem;
+    background: transparent;
+    cursor: pointer;
+    transition: all 150ms;
+  }
+  .qf-btn-secondary:hover {
+    background-color: var(--color-qf-accent);
+  }
+  .qf-btn-secondary:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  /* Card */
+  .qf-card {
+    background-color: var(--color-qf-surface);
+    border: 1px solid var(--color-qf-border);
+    border-radius: var(--radius-qf);
+    box-shadow: var(--shadow-qf-card);
+  }
+}
+
+/* ─────────────────────────────────────────────
+   Custom Scrollbar
+   ───────────────────────────────────────────── */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #FAF7F2;
+}
+::-webkit-scrollbar-thumb {
+  background: #E7E0D8;
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #78716C;
+}
