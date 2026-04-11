@@ -6,6 +6,8 @@ import com.quickfood.coreservice.dto.auth.LoginResponse;
 import com.quickfood.coreservice.dto.auth.RegisterRequest;
 import com.quickfood.coreservice.dto.delivery.ShipperProfileRequest;
 import com.quickfood.coreservice.entity.Role;
+import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
 import com.quickfood.coreservice.entity.User;
 import com.quickfood.coreservice.exception.BadRequestException;
 import com.quickfood.coreservice.repository.UserRepository;
@@ -29,6 +31,29 @@ public class AuthService {
         if (userRepository.existsByEmail(request.getEmail())) {
             throw new BadRequestException("Email already in use: " + request.getEmail());
         }
+
+        // === AGE VALIDATION ===
+        if (request.getDateOfBirth() != null) {
+            LocalDate dob = request.getDateOfBirth();
+            
+            // Không cho ngày sinh trong tương lai
+            if (dob.isAfter(LocalDate.now())) {
+                throw new BadRequestException("Ngày sinh không hợp lệ");
+            }
+            
+            long age = ChronoUnit.YEARS.between(dob, LocalDate.now());
+            
+            // Tất cả user phải từ 13 tuổi trở lên
+            if (age < 13) {
+                throw new BadRequestException("Người dùng phải từ 13 tuổi trở lên");
+            }
+            
+            // Shipper phải từ 18 tuổi trở lên (tuổi lao động)
+            if (Role.SHIPPER.equals(request.getRole()) && age < 18) {
+                throw new BadRequestException("Shipper phải đủ 18 tuổi trở lên");
+            }
+        }
+        // =====================
 
         User user = User.builder()
                 .name(request.getName())

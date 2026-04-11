@@ -70,6 +70,49 @@ BODY=$(parse_body "$R"); STATUS=$(parse_status "$R")
 echo "  Status: $STATUS | Body: $BODY"
 check_status "3b-Register SHIPPER 2" "$STATUS" "2xx"
 
+# ── AGE VALIDATION TESTS ──────────────────────────────────────────────────────
+echo ""
+echo "── STEP AGE_01: Shipper đúng ngày sinh nhật đủ 18 tuổi (boundary)"
+DOB_EXACT=$(date -d "18 years ago" +%Y-%m-%d 2>/dev/null || date -v-18y +%Y-%m-%d)
+R=$(do_curl POST "$BASE/api/core/auth/register" \
+  -H "Content-Type: application/json" \
+  -d "{\"name\":\"Shipper18\",\"email\":\"shipper18@test.com\",\"password\":\"pass123\",\"role\":\"SHIPPER\",\"dateOfBirth\":\"$DOB_EXACT\"}")
+STATUS=$(parse_status "$R")
+check_status "AGE_01 - Boundary 18 tuổi tròn" "$STATUS" "2xx"
+
+echo ""
+echo "── STEP AGE_02: Shipper chưa đủ 18 (1 ngày thiếu - boundary)"
+DOB_UNDER=$(date -d "18 years ago + 1 day" +%Y-%m-%d 2>/dev/null || date -v-18y -v+1d +%Y-%m-%d)
+R=$(do_curl POST "$BASE/api/core/auth/register" \
+  -H "Content-Type: application/json" \
+  -d "{\"name\":\"ShipperUnder\",\"email\":\"shipperyoung@test.com\",\"password\":\"pass123\",\"role\":\"SHIPPER\",\"dateOfBirth\":\"$DOB_UNDER\"}")
+STATUS=$(parse_status "$R")
+check_status "AGE_02 - 1 ngày chưa đủ 18" "$STATUS" "400"
+
+echo ""
+echo "── STEP AGE_03: Ngày sinh trong tương lai"
+R=$(do_curl POST "$BASE/api/core/auth/register" \
+  -H "Content-Type: application/json" \
+  -d '{"name":"Future","email":"future@test.com","password":"pass123","role":"CUSTOMER","dateOfBirth":"2030-01-01"}')
+STATUS=$(parse_status "$R")
+check_status "AGE_03 - Ngày sinh tương lai" "$STATUS" "400"
+
+echo ""
+echo "── STEP AGE_04: User dưới 13 tuổi"
+R=$(do_curl POST "$BASE/api/core/auth/register" \
+  -H "Content-Type: application/json" \
+  -d '{"name":"Kid","email":"kid@test.com","password":"pass123","role":"CUSTOMER","dateOfBirth":"2020-01-01"}')
+STATUS=$(parse_status "$R")
+check_status "AGE_04 - User dưới 13 tuổi" "$STATUS" "400"
+
+echo ""
+echo "── STEP AGE_05: Customer 15 tuổi (hợp lệ cho CUSTOMER)"
+R=$(do_curl POST "$BASE/api/core/auth/register" \
+  -H "Content-Type: application/json" \
+  -d '{"name":"Teen","email":"teen@test.com","password":"pass123","role":"CUSTOMER","dateOfBirth":"2009-01-01"}')
+STATUS=$(parse_status "$R")
+check_status "AGE_05 - Customer 15 tuổi OK" "$STATUS" "2xx"
+
 # ── STEP 4: Login all 3 ───────────────────────────────────────────────────────
 echo ""
 echo "── STEP 4a: Login CUSTOMER"
@@ -261,6 +304,41 @@ R=$(do_curl PUT "$BASE/api/delivery/shippers/me/location" \
   -d '{"lat":9999,"lng":99999}')
 STATUS=$(parse_status "$R")
 check_status "X-Invalid Location" "$STATUS" "400"
+
+echo ""
+echo "── STEP LOC_02: Lat âm ngoài biên (-91)"
+R=$(do_curl PUT "$BASE/api/delivery/shippers/me/location" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $SHIPPER_TOKEN" \
+  -d '{"lat":-91,"lng":106.66}')
+STATUS=$(parse_status "$R")
+check_status "LOC_02 - lat=-91 invalid" "$STATUS" "400"
+
+echo ""
+echo "── STEP LOC_03: Lng ngoài biên (181)"
+R=$(do_curl PUT "$BASE/api/delivery/shippers/me/location" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $SHIPPER_TOKEN" \
+  -d '{"lat":10.76,"lng":181}')
+STATUS=$(parse_status "$R")
+check_status "LOC_03 - lng=181 invalid" "$STATUS" "400"
+
+echo ""
+echo "── STEP LOC_04: Lng âm ngoài biên (-181)"
+R=$(do_curl PUT "$BASE/api/delivery/shippers/me/location" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $SHIPPER_TOKEN" \
+  -d '{"lat":10.76,"lng":-181}')
+STATUS=$(parse_status "$R")
+check_status "LOC_04 - lng=-181 invalid" "$STATUS" "400"
+
+echo ""
+echo "── STEP LOC_05: Tracking khi shipper chưa cập nhật location (null)"
+R=$(do_curl GET "$BASE/api/core/orders/$ORDER_ID/tracking" \
+  -H "Authorization: Bearer $CUSTOMER_TOKEN")
+BODY=$(parse_body "$R"); STATUS=$(parse_status "$R")
+echo "  Body: $BODY"
+check_status "LOC_05 - Tracking với null location" "$STATUS" "2xx"
 
 # ── STEP 14: CUSTOMER — Track order ──────────────────────────────────────────
 echo ""
