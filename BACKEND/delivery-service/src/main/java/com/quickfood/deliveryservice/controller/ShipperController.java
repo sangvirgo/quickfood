@@ -8,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/api/delivery/shippers")
@@ -30,7 +31,7 @@ public class ShipperController {
      * SHIPPER — update their GPS location.
      */
     @PutMapping("/me/location")
-    public ResponseEntity<ShipperResponse> updateLocation(@RequestBody UpdateLocationRequest request) {
+    public ResponseEntity<ShipperResponse> updateLocation(@Valid @RequestBody UpdateLocationRequest request) {
         return ResponseEntity.ok(shipperService.updateLocation(request));
     }
 

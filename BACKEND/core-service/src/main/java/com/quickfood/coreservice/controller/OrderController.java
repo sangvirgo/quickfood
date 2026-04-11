@@ -9,6 +9,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import jakarta.validation.Valid;
 
 import java.util.List;
 
@@ -27,7 +28,7 @@ public class OrderController {
     @PreAuthorize("hasRole('CUSTOMER')")
     public ResponseEntity<OrderResponse> createOrder(
             @RequestHeader("X-User-Id") Long customerId,
-            @RequestBody OrderRequest request) {
+            @Valid @RequestBody OrderRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(orderService.createOrder(customerId, request));
     }

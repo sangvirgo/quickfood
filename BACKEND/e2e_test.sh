@@ -53,13 +53,22 @@ check_status "2-Register STAFF" "$STATUS" "2xx"
 
 # ── STEP 3: Register SHIPPER ──────────────────────────────────────────────────
 echo ""
-echo "── STEP 3: Register SHIPPER"
+echo "── STEP 3: Register SHIPPER 1"
 R=$(do_curl POST "$BASE/api/core/auth/register" \
   -H "Content-Type: application/json" \
   -d '{"name":"Shipper1","email":"shipper1@test.com","password":"pass123","role":"SHIPPER"}')
 BODY=$(parse_body "$R"); STATUS=$(parse_status "$R")
 echo "  Status: $STATUS | Body: $BODY"
-check_status "3-Register SHIPPER" "$STATUS" "2xx"
+check_status "3-Register SHIPPER 1" "$STATUS" "2xx"
+
+echo ""
+echo "── STEP 3b: Register SHIPPER 2"
+R=$(do_curl POST "$BASE/api/core/auth/register" \
+  -H "Content-Type: application/json" \
+  -d '{"name":"Shipper2","email":"shipper2@test.com","password":"pass123","role":"SHIPPER"}')
+BODY=$(parse_body "$R"); STATUS=$(parse_status "$R")
+echo "  Status: $STATUS | Body: $BODY"
+check_status "3b-Register SHIPPER 2" "$STATUS" "2xx"
 
 # ── STEP 4: Login all 3 ───────────────────────────────────────────────────────
 echo ""
@@ -85,15 +94,27 @@ check_status "4b-Login STAFF" "$STATUS" "2xx"
 echo "  Token: ${STAFF_TOKEN:0:40}..."
 
 echo ""
-echo "── STEP 4c: Login SHIPPER"
+echo "── STEP 4c: Login SHIPPER 1"
 R=$(do_curl POST "$BASE/api/core/auth/login" \
   -H "Content-Type: application/json" \
   -d '{"email":"shipper1@test.com","password":"pass123"}')
 BODY=$(parse_body "$R"); STATUS=$(parse_status "$R")
 echo "  Status: $STATUS | Body: $BODY"
 SHIPPER_TOKEN=$(echo "$BODY" | grep -o '"token":"[^"]*"' | cut -d'"' -f4)
-check_status "4c-Login SHIPPER" "$STATUS" "2xx"
+SHIPPER1_TOKEN=$SHIPPER_TOKEN
+check_status "4c-Login SHIPPER 1" "$STATUS" "2xx"
 echo "  Token: ${SHIPPER_TOKEN:0:40}..."
+
+echo ""
+echo "── STEP 4d: Login SHIPPER 2"
+R=$(do_curl POST "$BASE/api/core/auth/login" \
+  -H "Content-Type: application/json" \
+  -d '{"email":"shipper2@test.com","password":"pass123"}')
+BODY=$(parse_body "$R"); STATUS=$(parse_status "$R")
+echo "  Status: $STATUS | Body: $BODY"
+SHIPPER2_TOKEN=$(echo "$BODY" | grep -o '"token":"[^"]*"' | cut -d'"' -f4)
+check_status "4d-Login SHIPPER 2" "$STATUS" "2xx"
+echo "  Token: ${SHIPPER2_TOKEN:0:40}..."
 
 # ── STEP 5: STAFF — Create product ────────────────────────────────────────────
 echo ""
@@ -180,6 +201,47 @@ BODY=$(parse_body "$R"); STATUS=$(parse_status "$R")
 echo "  Status: $STATUS | Body: $BODY"
 check_status "12-Accept Shipment" "$STATUS" "2xx"
 
+echo ""
+echo "── STEP 12b: Test concurrent accept (chỉ 1 shipper thắng)"
+# Tạo shipment thứ 2 trước
+R=$(do_curl POST "$BASE/api/core/orders" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $CUSTOMER_TOKEN" \
+  -d "{\"items\":[{\"productId\":$PRODUCT_ID,\"quantity\":1}],\"deliveryAddress\":\"456 Second St\"}")
+ORDER2_ID=$(echo "$(parse_body "$R")" | grep -o '"id":[0-9]*' | head -1 | grep -o '[0-9]*')
+
+R=$(do_curl PUT "$BASE/api/core/orders/$ORDER2_ID/ready" \
+  -H "Authorization: Bearer $STAFF_TOKEN")
+sleep 2
+
+# Lấy ID của shipment 2
+R=$(do_curl GET "$BASE/api/delivery/shipments/available" \
+  -H "Authorization: Bearer $SHIPPER1_TOKEN")
+SHIPMENT2_ID=$(echo "$(parse_body "$R")" | grep -o '"id":[0-9]*' | head -1 | grep -o '[0-9]*')
+
+if [ -z "$SHIPMENT2_ID" ]; then
+    SHIPMENT2_ID=2 # Fallback
+fi
+
+# Rồi gửi 2 request cùng lúc
+curl -s -o /tmp/resp1.txt -w "%{http_code}" -X PUT "$BASE/api/delivery/shipments/$SHIPMENT2_ID/accept" \
+  -H "Authorization: Bearer $SHIPPER1_TOKEN" > /tmp/status1.txt &
+curl -s -o /tmp/resp2.txt -w "%{http_code}" -X PUT "$BASE/api/delivery/shipments/$SHIPMENT2_ID/accept" \
+  -H "Authorization: Bearer $SHIPPER2_TOKEN" > /tmp/status2.txt &
+wait
+
+S1=$(cat /tmp/status1.txt)
+S2=$(cat /tmp/status2.txt)
+echo "  Shipper 1 Status: $S1"
+echo "  Shipper 2 Status: $S2"
+
+if [[ ("$S1" =~ ^2 && "$S2" =~ ^[45]) || ("$S2" =~ ^2 && "$S1" =~ ^[45]) ]]; then
+  echo "$PASS [12b-Concurrent Accept] Test passed (One 2xx and one 4xx/5xx)"
+else
+  echo "$FAIL [12b-Concurrent Accept] Expected one 2xx and one 4xx/5xx, got S1=$S1, S2=$S2"
+  exit 1
+fi
+
 # ── STEP 13: SHIPPER — Update location ───────────────────────────────────────
 echo ""
 echo "── STEP 13: SHIPPER — Update location"
@@ -190,6 +252,15 @@ R=$(do_curl PUT "$BASE/api/delivery/shippers/me/location" \
 BODY=$(parse_body "$R"); STATUS=$(parse_status "$R")
 echo "  Status: $STATUS | Body: $BODY"
 check_status "13-Update Location" "$STATUS" "2xx"
+
+echo ""
+echo "── STEP X: Negative — Invalid location"
+R=$(do_curl PUT "$BASE/api/delivery/shippers/me/location" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $SHIPPER_TOKEN" \
+  -d '{"lat":9999,"lng":99999}')
+STATUS=$(parse_status "$R")
+check_status "X-Invalid Location" "$STATUS" "400"
 
 # ── STEP 14: CUSTOMER — Track order ──────────────────────────────────────────
 echo ""
