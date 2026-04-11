@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 import AuthLayout from '@/components/auth/AuthLayout'
 import LoginForm from '@/components/auth/LoginForm'
@@ -8,13 +8,13 @@ import RegisterForm from '@/components/auth/RegisterForm'
 
 type Tab = 'login' | 'register'
 
-export default function LoginPage() {
+// Tách phần dùng useSearchParams ra component riêng
+function LoginPageContent() {
   const searchParams = useSearchParams()
   const [activeTab, setActiveTab] = useState<Tab>('login')
   const [animKey, setAnimKey] = useState(0)
   const [successMsg, setSuccessMsg] = useState('')
 
-  // If redirected after register
   useEffect(() => {
     if (searchParams.get('registered') === '1') {
       setSuccessMsg('Đăng ký thành công! Vui lòng đăng nhập.')
@@ -26,13 +26,12 @@ export default function LoginPage() {
     if (tab === activeTab) return
     setActiveTab(tab)
     setSuccessMsg('')
-    setAnimKey((k) => k + 1) // remount form content → re-trigger animation
+    setAnimKey((k) => k + 1)
   }
 
   return (
     <AuthLayout>
       <div>
-        {/* ── Tab switcher ───────────────────────────────────── */}
         <div
           className="flex border-b mb-8"
           style={{ borderColor: 'var(--color-qf-border)' }}
@@ -52,15 +51,11 @@ export default function LoginPage() {
               onClick={() => switchTab(key)}
               className="relative pb-3 mr-8 text-sm font-medium transition-colors duration-150"
               style={{
-                color:
-                  activeTab === key
-                    ? 'var(--color-qf-primary)'
-                    : 'var(--color-qf-muted)',
+                color: activeTab === key ? 'var(--color-qf-primary)' : 'var(--color-qf-muted)',
                 fontFamily: 'var(--font-sans)',
               }}
             >
               {label}
-              {/* Underline indicator */}
               <span
                 className="absolute bottom-0 left-0 right-0 h-0.5 rounded-full transition-all duration-200"
                 style={{
@@ -73,7 +68,6 @@ export default function LoginPage() {
           ))}
         </div>
 
-        {/* ── Heading ────────────────────────────────────────── */}
         <div className="mb-6">
           <h2
             className="text-2xl font-bold text-qf-secondary"
@@ -88,7 +82,6 @@ export default function LoginPage() {
           </p>
         </div>
 
-        {/* ── Success message (after register) ───────────────── */}
         {successMsg && (
           <div
             className="flex items-center gap-2 text-sm px-4 py-3 rounded-lg mb-5"
@@ -103,7 +96,6 @@ export default function LoginPage() {
           </div>
         )}
 
-        {/* ── Form content with fade+slide animation ──────────── */}
         <div
           key={animKey}
           className="animate-slide-up"
@@ -114,5 +106,14 @@ export default function LoginPage() {
         </div>
       </div>
     </AuthLayout>
+  )
+}
+
+// Wrap bằng Suspense ở đây
+export default function LoginPage() {
+  return (
+    <Suspense fallback={null}>
+      <LoginPageContent />
+    </Suspense>
   )
 }

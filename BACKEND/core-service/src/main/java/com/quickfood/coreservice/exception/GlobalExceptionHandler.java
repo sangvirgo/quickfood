@@ -19,4 +19,10 @@ public class GlobalExceptionHandler {
             
         return ResponseEntity.badRequest().body(errors);
     }
+
+
+    @ExceptionHandler(BadRequestException.class)
+    public ResponseEntity<Map<String, String>> handleBadRequest(BadRequestException ex) {
+        return ResponseEntity.badRequest().body(Map.of("message", ex.getMessage()));
+    }
 }
