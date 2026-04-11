@@ -27,8 +27,8 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="vi" className={`${playfair.variable} ${dmSans.variable}`}>
-      <body className="font-sans bg-qf-bg text-qf-secondary antialiased">
+    <html lang="vi" className={`${playfair.variable} ${dmSans.variable}`} suppressHydrationWarning>
+      <body className="font-sans bg-qf-bg text-qf-secondary antialiased" suppressHydrationWarning>
         <ToastProvider>
           {children}
         </ToastProvider>

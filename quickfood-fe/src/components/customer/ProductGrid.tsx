@@ -24,11 +24,12 @@ interface ProductGridProps {
 }
 
 export default function ProductGrid({ products, loading, search }: ProductGridProps) {
+  const visibleProducts = products.filter((p) => p.isAvailable !== false && p.available !== false)
   const filtered = search.trim()
-    ? products.filter((p) =>
+    ? visibleProducts.filter((p) =>
         p.name.toLowerCase().includes(search.toLowerCase())
       )
-    : products
+    : visibleProducts
 
   return (
     <section className="px-4 lg:px-8 py-6">
