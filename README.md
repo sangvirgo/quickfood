@@ -1,179 +1,175 @@
-# 🍔 QuickFood
+# 🍔 QuickFood — Full-Stack Microservices Delivery Platform
 
-**A modern microservices-based food delivery platform** built with **Spring Boot + Spring Cloud**.
+<div align="center">
 
-Inspired by DoorDash, Swiggy, and Zomato — a clean, scalable backend for quick food ordering and delivery.
+![Java](https://img.shields.io/badge/Java_17-ED8B00?style=for-the-badge&logo=openjdk&logoColor=white)
+![Spring Boot](https://img.shields.io/badge/Spring_Boot_3-6DB33F?style=for-the-badge&logo=spring&logoColor=white)
+![Spring Cloud](https://img.shields.io/badge/Spring_Cloud-6DB33F?style=for-the-badge&logo=spring&logoColor=white)
+![Next.js](https://img.shields.io/badge/Next.js-000000?style=for-the-badge&logo=next.js&logoColor=white)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-4169E1?style=for-the-badge&logo=postgresql&logoColor=white)
+![Docker](https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white)
 
----
+**A modern, scalable, and fully containerized food delivery platform.** *Built with Spring Boot Microservices, Next.js, and PostGIS for real-time spatial tracking.*
 
-## ✨ Features
-
-- Full **microservices architecture** with service discovery
-- Centralized **API Gateway** for routing and security
-- **JWT Authentication** (register / login)
-- Product catalog management
-- Order creation, items, and history
-- Delivery management & tracking
-- **Geospatial support** (driver location, radius search) using PostGIS
-- Fully **Dockerized** — one-command deployment
-- Ready-to-use Postman collection for testing
+</div>
 
 ---
 
-## 🛠 Tech Stack
+## 🎯 Executive Summary
 
-- **Backend**: Java 17+, Spring Boot 3, Spring Cloud
-- **Service Registry**: Netflix Eureka
-- **API Gateway**: Spring Cloud Gateway
-- **Database**: PostgreSQL + PostGIS (geospatial)
-- **Containerization**: Docker + Docker Compose
-- **Build Tool**: Maven
-- **Authentication**: JWT
+**QuickFood** is an end-to-end food ordering and delivery system engineered to mimic the core functionalities of industry leaders like DoorDash or UberEats. Designed with a strict **Microservices Architecture**, the backend ensures fault tolerance and horizontal scalability. It integrates with a responsive **Next.js** frontend dashboard tailored for diverse user roles (Customers, Staff, and Shippers). 
 
 ---
 
-## 🏗 Architecture
+## ✨ Key Features & Technical Highlights
+
+* **Robust Microservices Ecosystem**: Isolated bounded contexts leveraging **Netflix Eureka** for service discovery and **Spring Cloud Gateway** for centralized routing and JWT-based authentication.
+* **Geospatial Processing**: Utilizes **PostgreSQL + PostGIS** to perform complex geographical queries, enabling real-time driver location tracking and delivery radius validation.
+* **Modern Frontend**: A fully typed **Next.js (React)** web application featuring tailored dashboards for customers, restaurant staff, and delivery drivers.
+* **Concurrency & Reliability**: Engineered to handle race conditions (e.g., concurrent shipment acceptance by multiple drivers) ensuring transactional integrity.
+* **Containerized Infrastructure**: Fully automated deployment lifecycle using **Docker Compose** for seamless local setup.
+
+---
+
+## 🏗 System Architecture & Design
+
+The platform relies on a distributed architecture to separate concerns, improve security, and streamline independent deployments.
+
+### High-Level Architecture Flow
 
 ```mermaid
 graph TD
-    Client[Client / Mobile App] --> Gateway[API Gateway<br/>:8080]
-    Gateway --> Eureka[Eureka Discovery<br/>:8761]
-    Gateway --> Core[Core Service<br/>:8081<br/>Products + Orders]
-    Gateway --> Delivery[Delivery Service<br/>:8082<br/>Tracking + Drivers]
+    %% Frontend Clients
+    Client_Web[Next.js Web App / UI] --> Gateway
+    Client_Mobile[Mobile App / Postman] --> Gateway
     
-    Core --> DB1[(quickfood_core<br/>PostgreSQL)]
-    Delivery --> DB2[(quickfood_delivery<br/>+ PostGIS)]
+    %% API Gateway Layer
+    subgraph Spring Cloud Infrastructure
+        Gateway[API Gateway<br/>:8080 | Auth & Routing]
+        Eureka[Eureka Discovery<br/>:8761 | Service Registry]
+    end
+    
+    Gateway --> Eureka
+    Gateway -.-> Core
+    Gateway -.-> Delivery
+
+    %% Business Microservices
+    subgraph Microservices
+        Core[Core Service<br/>:8081<br/>Products, Orders, Users]
+        Delivery[Delivery Service<br/>:8082<br/>Tracking, Shippers]
+    end
+
+    %% Database Layer
+    Core --> DB_Core[(PostgreSQL<br/>quickfood_core)]
+    Delivery --> DB_Delivery[(PostgreSQL + PostGIS<br/>quickfood_delivery)]
 ```
 
 ---
 
-## 📁 Project Structure
+## 🗄️ Conceptual Entity Relationship (UML)
 
+The data layer is decoupled into two independent PostgreSQL schemas to uphold microservice data sovereignty principles.
+
+```mermaid
+erDiagram
+    %% Core Service Domain
+    USER ||--o{ ORDER : "places"
+    PRODUCT ||--o{ ORDER_ITEM : "included in"
+    ORDER ||--|{ ORDER_ITEM : "contains"
+    
+    %% Cross-service relationship (Conceptual)
+    ORDER ||--o| SHIPMENT : "triggers"
+    
+    %% Delivery Service Domain
+    SHIPPER ||--o{ SHIPMENT : "accepts & delivers"
+    SHIPPER {
+        UUID id PK
+        String name
+        Point current_location
+        Int age
+    }
+    SHIPMENT {
+        UUID id PK
+        UUID order_id FK
+        String status
+        Point dropoff_location
+    }
 ```
+
+---
+
+## 🧪 Quality Assurance & Testing
+
+Software quality is rigorously enforced through comprehensive test cases and systematic validation methodologies:
+
+* **Boundary Value Analysis**: Strict validation for business rules (e.g., Shipper minimum age limits with exact `18 years`, `18 years - 1 day` thresholds).
+* **Geospatial Validation**: Coordinate boundary testing (`lat: -90 to 90`, `lng: -180 to 180`) preventing anomalous data ingestion.
+* **Concurrent Handling (Race Conditions)**: Transaction locking to ensure that if multiple shippers attempt to accept the same `WAITING` shipment simultaneously, only one succeeds while others receive graceful failure responses.
+
+---
+
+## 🚀 Getting Started
+
+### Prerequisites
+* [Docker](https://www.docker.com/) & [Docker Compose](https://docs.docker.com/compose/)
+* [Node.js 18+](https://nodejs.org/) (for frontend execution)
+
+### 1. One-Click Backend Deployment
+Spin up the entire infrastructure (Databases, Eureka, Gateway, Core, and Delivery services) using Docker:
+
+```bash
+git clone [https://github.com/sangvirgo/quickfood.git](https://github.com/sangvirgo/quickfood.git)
+cd quickfood
+docker compose up --build
+```
+*Wait approximately 20-40 seconds for the Eureka server to register all instances.*
+
+### 2. Start the Next.js Frontend
+```bash
+cd quickfood-fe
+npm install
+npm run dev
+```
+
+### 🌍 Access Points
+| Component | URL / Port | Description |
+|---|---|---|
+| **Frontend Web App** | `http://localhost:3000` | Next.js User Interface |
+| **API Gateway** | `http://localhost:8080` | Main entry point for API requests |
+| **Eureka Dashboard** | `http://localhost:8761` | Service registry monitoring |
+| **PostgreSQL** | `localhost:5432` | Dual databases via `init-db.sql` |
+
+---
+
+## 📡 API Documentation & Testing (Postman)
+
+A pre-configured Postman collection is included to evaluate the backend APIs immediately.
+
+1.  Locate `QuickFood-API.postman_collection.json` in the `/BACKEND` directory.
+2.  Import into Postman.
+3.  Register/Login to retrieve a JWT.
+4.  Execute protected flows across `Products`, `Orders`, and `Delivery` services.
+
+---
+
+## 📁 Repository Structure
+
+```text
 quickfood/
 ├── BACKEND/
-│   ├── eureka-server/          # Service Discovery (Eureka)
-│   ├── api-gateway/            # API Gateway
-│   ├── core-service/           # Main business logic (products, orders, customers)
-│   └── delivery-service/       # Delivery management & location tracking
-├── docker-compose.yml
-├── init-db.sql                 # Creates databases + enables PostGIS
-├── QuickFood-API.postman_collection.json
-├── .dockerignore
+│   ├── api-gateway/            # Centralized entry point & JWT validation
+│   ├── eureka-server/          # Netflix Eureka Service Registry
+│   ├── core-service/           # Business logic: Users, Products, Orders
+│   └── delivery-service/       # Routing, tracking, PostGIS spatial queries
+├── quickfood-fe/               # Next.js Frontend application (App Router)
+├── docker-compose.yml          # Container orchestration
+├── init-db.sql                 # Automated schema and PostGIS provisioning
+├── sqa_report.md               # Detailed Software Quality Assurance test cases
 └── README.md
 ```
 
 ---
 
-## 🚀 Quick Start (Recommended)
+## 👨‍💻 Author
 
-### Prerequisites
-- Docker & Docker Compose
-
-### 1. Clone the repo
-```bash
-git clone https://github.com/sangvirgo/quickfood.git
-cd quickfood
-```
-
-### 2. Start everything
-```bash
-docker compose up --build
-```
-
-Services will start automatically (wait ~20-40 seconds for all to be ready).
-
-### Access URLs
-
-- **API Gateway** (main entry point): http://localhost:8080
-- **Eureka Dashboard**: http://localhost:8761
-- **PostgreSQL**: localhost:5432
-
----
-
-## 📋 Services & Ports
-
-| Service            | Port  | Description                          |
-|--------------------|-------|--------------------------------------|
-| API Gateway        | 8080  | Single entry point for all requests  |
-| Eureka Server      | 8761  | Service registry & dashboard         |
-| Core Service       | 8081  | Products, Orders, Customers          |
-| Delivery Service   | 8082  | Delivery tracking & drivers          |
-| PostgreSQL         | 5432  | Databases (core + delivery)          |
-
----
-
-## 🗄️ Databases
-
-Two separate PostgreSQL databases are created automatically:
-
-- **`quickfood_core`** — Used by core-service (customers, products, orders)
-- **`quickfood_delivery`** — Used by delivery-service (deliveries, drivers, locations)
-
-**PostGIS** extension is enabled on both for geospatial queries (nearby drivers, delivery radius, etc.).
-
----
-
-## 📡 API Documentation & Testing
-
-A complete **Postman collection** is included:
-
-**`QuickFood-API.postman_collection.json`**
-
-**How to test**:
-1. Import the collection into Postman
-2. Start the services with `docker compose up`
-3. Register a user → Login to get JWT token
-4. Use the token for protected endpoints (products, orders, delivery)
-
-Key flows included: Auth, Products, Orders, Delivery.
-
----
-
-## 🔧 Running Locally (without Docker)
-
-1. Start PostgreSQL with PostGIS
-2. Run `init-db.sql`
-3. Start services in order:
-   - `eureka-server`
-   - `api-gateway`
-   - `core-service`
-   - `delivery-service`
-
-Each service has its own `application.yml`.
-
----
-
-## 📌 Future Roadmap
-
-- Real-time tracking with WebSockets
-- Payment integration (Stripe/Razorpay)
-- Restaurant/Staff roles
-- Notifications (email/SMS)
-- Caching with Redis
-- Kubernetes deployment
-- Admin dashboard
-
----
-
-## 🤝 Contributing
-
-Contributions are welcome!  
-Feel free to open issues or submit pull requests.
-
----
-
-## 📄 License
-
-This project is open-source and free to use for learning and personal projects.
-
----
-
-**Made with ❤️ using Spring Boot Microservices**
-```
-
----
-
-Just paste it, commit, and push — your repo will look **professional** instantly!  
-
-Want any tweaks (add screenshots section, badges, more detailed endpoints, change tone, etc.)? Just say the word and I’ll update it in seconds. 🚀
+**Nguyễn Lưu Tấn Sang** *Backend & Systems Developer* Passionate about designing resilient, scalable backend architectures and integrating intelligent systems.
