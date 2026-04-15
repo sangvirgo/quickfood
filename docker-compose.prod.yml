@@ -27,8 +27,19 @@ services:
     restart: always
     ports:
       - "8761:8761"
+    environment:
+      - SERVER_PORT=8761
+      - EUREKA_CLIENT_REGISTER_WITH_EUREKA=false
+      - EUREKA_CLIENT_FETCH_REGISTRY=false
     networks:
       - quickfood-network
+    # ✅ FIX: Added healthcheck so dependent services wait until Eureka is truly ready
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://localhost:8761/actuator/health | grep -q UP || exit 1"]
+      interval: 15s
+      timeout: 10s
+      retries: 8
+      start_period: 30s
 
   api-gateway:
     image: ${DOCKER_USERNAME}/quickfood-api-gateway:latest
@@ -39,7 +50,9 @@ services:
     environment:
       - EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE=http://discovery-service:8761/eureka/
     depends_on:
-      - discovery-service
+      # ✅ FIX: Wait for Eureka to be healthy, not just started
+      discovery-service:
+        condition: service_healthy
     networks:
       - quickfood-network
 
@@ -57,8 +70,9 @@ services:
     depends_on:
       postgres-db:
         condition: service_healthy
+      # ✅ FIX: Wait for Eureka to be healthy, not just started
       discovery-service:
-        condition: service_started
+        condition: service_healthy
     networks:
       - quickfood-network
 
@@ -76,8 +90,9 @@ services:
     depends_on:
       postgres-db:
         condition: service_healthy
+      # ✅ FIX: Wait for Eureka to be healthy, not just started
       discovery-service:
-        condition: service_started
+        condition: service_healthy
     networks:
       - quickfood-network
 
