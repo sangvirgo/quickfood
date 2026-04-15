@@ -1,0 +1,104 @@
+version: '3.8'
+
+services:
+  postgres-db:
+    image: postgis/postgis:16-3.4
+    container_name: quickfood-postgres
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./init-db.sql:/docker-entrypoint-initdb.d/init-db.sql
+    networks:
+      - quickfood-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  discovery-service:
+    image: ${DOCKER_USERNAME}/quickfood-eureka-server:latest
+    container_name: discovery-service
+    restart: always
+    ports:
+      - "8761:8761"
+    networks:
+      - quickfood-network
+
+  api-gateway:
+    image: ${DOCKER_USERNAME}/quickfood-api-gateway:latest
+    container_name: api-gateway
+    restart: always
+    ports:
+      - "8080:8080"
+    environment:
+      - EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE=http://discovery-service:8761/eureka/
+    depends_on:
+      - discovery-service
+    networks:
+      - quickfood-network
+
+  core-service:
+    image: ${DOCKER_USERNAME}/quickfood-core-service:latest
+    container_name: core-service
+    restart: always
+    ports:
+      - "8081:8081"
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres-db:5432/quickfood_core
+      - SPRING_DATASOURCE_USERNAME=postgres
+      - SPRING_DATASOURCE_PASSWORD=postgres
+      - EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE=http://discovery-service:8761/eureka/
+    depends_on:
+      postgres-db:
+        condition: service_healthy
+      discovery-service:
+        condition: service_started
+    networks:
+      - quickfood-network
+
+  delivery-service:
+    image: ${DOCKER_USERNAME}/quickfood-delivery-service:latest
+    container_name: delivery-service
+    restart: always
+    ports:
+      - "8082:8082"
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres-db:5432/quickfood_delivery
+      - SPRING_DATASOURCE_USERNAME=postgres
+      - SPRING_DATASOURCE_PASSWORD=postgres
+      - EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE=http://discovery-service:8761/eureka/
+    depends_on:
+      postgres-db:
+        condition: service_healthy
+      discovery-service:
+        condition: service_started
+    networks:
+      - quickfood-network
+
+  frontend:
+    image: ${DOCKER_USERNAME}/quickfood-frontend:latest
+    container_name: quickfood-frontend
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - NEXT_PUBLIC_API_URL=http://165.227.147.13:8080
+    depends_on:
+      - api-gateway
+    networks:
+      - quickfood-network
+
+networks:
+  quickfood-network:
+    driver: bridge
+
+volumes:
+  postgres-data:
+    driver: local
