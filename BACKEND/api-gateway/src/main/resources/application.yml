@@ -35,6 +35,8 @@ spring:
               - "http://localhost:5174"
               - "http://localhost:5175"
               - "https://*.vercel.app"
+              - "http://localhost:3000"
+              - "http://165.227.147.13:3000"
               # ✅ Thêm VNPay origin nếu cần (thường không cần vì VNPay redirect)
               - "https://sandbox.vnpayment.vn"
             allowed-methods:
