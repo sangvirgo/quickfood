@@ -1,5 +1,9 @@
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'
 
+// DEBUG: Log API URL khi build
+console.log('[QuickFood API] NEXT_PUBLIC_API_URL:', API_URL)
+console.log('[QuickFood API] Build env NODE_ENV:', process.env.NODE_ENV)
+
 function getToken(): string | null {
   if (typeof window === 'undefined') return null
   return localStorage.getItem('qf_token')
