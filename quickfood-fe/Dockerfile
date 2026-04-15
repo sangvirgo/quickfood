@@ -17,11 +17,10 @@ COPY . .
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV NODE_ENV=production
 
-# ---------------------------------------------------------
-# THÊM 2 DÒNG NÀY ĐỂ BẮT BIẾN TỪ LÚC BUILD
+# Build-time ARG: API URL (phải truyền từ CI/CD qua --build-arg)
 ARG NEXT_PUBLIC_API_URL
+# Runtime ENV: Next.js cần ENV để inject vào code tại thời điểm build
 ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
-# ---------------------------------------------------------
 
 # Build the Next.js application
 RUN npm run build
