@@ -15,24 +15,15 @@ public class SecurityConfig {
     @Bean
     public SecurityWebFilterChain springSecurityFilterChain(ServerHttpSecurity http) {
         http
-            // 1. Kích hoạt CORS (Nó sẽ tự động liên kết với file CorsConfig.java của bạn)
             .cors(Customizer.withDefaults())
-            
-            // 2. Tắt CSRF
             .csrf(ServerHttpSecurity.CsrfSpec::disable)
-            
-            // 3. Phân quyền
             .authorizeExchange(exchanges -> exchanges
-                // RẤT QUAN TRỌNG: Cho phép các request mồi (Preflight) đi qua
                 .pathMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                
-                // Các endpoint không cần đăng nhập
                 .pathMatchers("/eureka/**").permitAll()
+                .pathMatchers(HttpMethod.GET, "/api/core/products/**").permitAll() 
                 .pathMatchers("/api/core/auth/**").permitAll()
-                
-                // Các request khác: Ở đây tôi khuyên dùng .authenticated() thay vì .permitAll() 
-                // để Gateway thực sự bảo vệ các API của bạn bằng JWT.
-                .anyExchange().authenticated() 
+                // Cho phép tất cả — Gateway filter Authentication sẽ tự xử lý JWT
+                .anyExchange().permitAll()
             );
             
         return http.build();
