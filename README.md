@@ -8,9 +8,11 @@
 ![Next.js](https://img.shields.io/badge/Next.js-000000?style=for-the-badge&logo=next.js&logoColor=white)
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-4169E1?style=for-the-badge&logo=postgresql&logoColor=white)
 ![Docker](https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white)
+![GitHub Actions](https://img.shields.io/badge/GitHub_Actions-2088FF?style=for-the-badge&logo=githubactions&logoColor=white)
+![DigitalOcean](https://img.shields.io/badge/DigitalOcean-0080FF?style=for-the-badge&logo=digitalocean&logoColor=white)
 
-**A modern, highly scalable, and fully containerized full-stack food delivery ecosystem.**
-*Designed and engineered end-to-end (System Architecture, Backend Microservices, and Frontend UI) to mimic the core functionalities of industry leaders like UberEats and DoorDash.*
+**A modern, highly scalable, and fully containerized full-stack food delivery ecosystem.**  
+*Designed and engineered end-to-end (System Architecture, Backend Microservices, Frontend UI, and CI/CD Pipeline) to mimic the core functionalities of industry leaders like UberEats and DoorDash.*
 
 </div>
 
@@ -18,9 +20,9 @@
 
 ## 🎯 Executive Summary
 
-**QuickFood** is a comprehensive food ordering and delivery platform built with a strict **Microservices Architecture**. It guarantees fault tolerance, horizontal scalability, and seamless user experiences across multiple roles. The project highlights advanced system design patterns, real-time spatial tracking capabilities, and rigorous concurrency management.
+**QuickFood** is a comprehensive food ordering and delivery platform built with a strict **Microservices Architecture**. It guarantees fault tolerance, horizontal scalability, and seamless user experiences across multiple roles. The project highlights advanced system design patterns, real-time spatial tracking capabilities, rigorous concurrency management, and a **fully automated CI/CD pipeline** for zero-touch production deployments.
 
-**End-to-End Ownership:** This project was developed entirely from scratch by a single developer, covering database design, backend microservices implementation, frontend UI/UX integration, and Dockerized DevOps pipelines.
+**End-to-End Ownership:** This project was developed entirely from scratch by a single developer, covering database design, backend microservices implementation, frontend UI/UX integration, Dockerized infrastructure, and a production-grade DevOps pipeline.
 
 ---
 
@@ -31,6 +33,7 @@
 * **⚡ Concurrency & Race Condition Handling:** Successfully implemented robust transactional locking mechanisms. When multiple drivers simultaneously attempt to accept the same `WAITING` order, the system guarantees absolute data integrity—granting the order to exactly one driver while safely rejecting the others.
 * **💻 Modern Multi-Role Frontend:** Developed a fully typed, responsive web application using **Next.js (React)**, featuring distinct, role-based dashboards for Customers, Restaurant Staff, and Delivery Drivers (Shippers).
 * **🐳 Fully Containerized Infrastructure:** Streamlined the entire deployment lifecycle using **Docker Compose**, allowing the entire distributed system (databases, registry, gateway, and business services) to be spun up locally with a single command.
+* **🚀 Automated CI/CD Pipeline:** Engineered a complete **GitHub Actions** pipeline that automatically builds, tests, and deploys the entire distributed system to a **DigitalOcean** cloud droplet on every push to `main` — achieving fully automated, zero-downtime deployments with Docker layer caching for build optimization.
 
 ---
 
@@ -75,6 +78,80 @@ graph TD
     Core --> DB_Core
     Delivery --> DB_Delivery
 ```
+
+---
+
+## 🚀 CI/CD Pipeline — Automated Production Deployment
+
+The project features a fully automated **GitHub Actions** CI/CD pipeline that handles everything from source code to live production without any manual steps.
+
+### Pipeline Overview
+
+Every `git push` to the `main` branch triggers a two-stage pipeline:
+
+```mermaid
+flowchart LR
+    A["👨‍💻 git push\nmain"] --> B
+
+    subgraph "Stage 1 — Build & Push"
+        B["🔨 Checkout\nSource Code"]
+        B --> C["🐳 Docker\nBuildx Setup"]
+        C --> D["🔐 Login to\nDocker Hub"]
+        D --> E["📦 Build & Push\n5 Service Images"]
+        E --> F["💾 GHA Cache\nLayer Reuse"]
+    end
+
+    F --> G
+
+    subgraph "Stage 2 — Deploy"
+        G["🔑 SSH into\nDigitalOcean Droplet"]
+        G --> H["⬇️ Pull Latest\nDocker Images"]
+        H --> I["♻️ Rolling Restart\nAll Services"]
+        I --> J["🧹 Prune Old\nImages"]
+        J --> K["✅ Health Check\n& Status Report"]
+    end
+
+    K --> L["🌍 Live at\n165.227.147.13:3000"]
+```
+
+### Key Engineering Decisions
+
+| Design Choice | Implementation | Benefit |
+|---|---|---|
+| **Parallel image builds** | Each microservice has an independent `build-push` step | Faster pipeline via GitHub Actions parallelism |
+| **Docker layer caching** | `cache-from/cache-to: type=gha` on all build steps | Dramatically reduces build time on unchanged layers |
+| **Health-aware startup** | `condition: service_healthy` on all `depends_on` | Prevents race conditions during container orchestration |
+| **Automated cleanup** | `docker image prune -f` post-deploy | Keeps the production droplet from running out of disk space |
+| **Secret management** | All credentials stored in GitHub Secrets | Zero hardcoded credentials in source code |
+| **Build-time env injection** | `NEXT_PUBLIC_API_URL` passed at build via `--build-args` | Ensures the frontend correctly targets the production API |
+
+### Secrets & Environment Configuration
+
+| GitHub Secret | Purpose |
+|---|---|
+| `DOCKER_USERNAME` / `DOCKER_PASSWORD` | Authenticate to Docker Hub for image push |
+| `DROPLET_HOST` | Public IP of the DigitalOcean droplet |
+| `DROPLET_SSH_KEY` | Private SSH key for secure remote access |
+| `NEXT_PUBLIC_API_URL` | Production API endpoint injected at frontend build time |
+
+### Service Startup Order (Production)
+
+The `docker-compose.prod.yml` enforces strict startup sequencing to prevent cascading failures on cold boot:
+
+```
+postgres-db (healthcheck: pg_isready)
+    └── discovery-service (healthcheck: /actuator/health → UP)
+            ├── api-gateway
+            ├── core-service
+            └── delivery-service
+                    └── frontend
+```
+
+### Live Deployment
+
+> ✅ **18+ successful automated deployments** recorded, all passing — visible in the [GitHub Actions workflow history](https://github.com/sangvirgo/quickfood/actions).
+
+The production application is accessible at: **`http://165.227.147.13:3000`** (hosted on a DigitalOcean Ubuntu 22.04 droplet, FRA1 region).
 
 ---
 
@@ -129,7 +206,7 @@ High reliability is enforced through rigorous testing methodologies:
 Spin up the entire infrastructure natively—including PostgreSQL/PostGIS, Eureka, API Gateway, Core, and Delivery services.
 
 ```bash
-git clone [https://github.com/sangvirgo/quickfood.git](https://github.com/sangvirgo/quickfood.git)
+git clone https://github.com/sangvirgo/quickfood.git
 cd quickfood
 docker compose up --build -d
 ```
@@ -167,13 +244,17 @@ A pre-configured Postman collection is included for rapid API evaluation.
 
 ```text
 quickfood/
+├── .github/
+│   └── workflows/
+│       └── deploy.yml          # GitHub Actions CI/CD pipeline
 ├── BACKEND/
 │   ├── api-gateway/            # Centralized edge routing & JWT verification
 │   ├── eureka-server/          # Netflix Eureka Service Registry
 │   ├── core-service/           # Product catalog, shopping cart, user management
 │   └── delivery-service/       # Routing, PostGIS spatial queries, delivery lifecycle
 ├── quickfood-fe/               # Next.js 14 Frontend application (App Router)
-├── docker-compose.yml          # Container orchestration & dependency management
+├── docker-compose.yml          # Local development orchestration
+├── docker-compose.prod.yml     # Production orchestration (used by CI/CD)
 ├── init-db.sql                 # Automated database initialization & PostGIS setup
 ├── sqa_report.md               # Software Quality Assurance & Edge-case test reports
 └── README.md
@@ -183,4 +264,4 @@ quickfood/
 
 ## 👨‍💻 Author
 
-**Nguyễn Lưu Tấn Sang** 
+**Nguyễn Lưu Tấn Sang**
