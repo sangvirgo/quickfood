@@ -33,8 +33,9 @@ export function clearAuth(): void {
 
 export function getRoleRedirect(role: string): string {
   switch (role) {
-    case 'STAFF':   return '/staff/dashboard'
-    case 'SHIPPER': return '/shipper/dashboard'
-    default:        return '/'
+    case 'STAFF':    return '/staff/dashboard'
+    case 'SHIPPER':  return '/shipper/dashboard'
+    case 'CUSTOMER': return '/home'
+    default:         return '/home'
   }
 }

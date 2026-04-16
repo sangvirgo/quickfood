@@ -74,7 +74,7 @@ export default function Header({ onCartClick, search, onSearch }: HeaderProps) {
     >
       {/* Logo */}
       <Link
-        href="/"
+        href="/home"
         className="text-xl font-bold shrink-0"
         style={{
           fontFamily: 'var(--font-display)',
