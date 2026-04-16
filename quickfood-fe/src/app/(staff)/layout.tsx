@@ -26,7 +26,8 @@ export default function StaffLayout({ children }: { children: ReactNode }) {
     } else {
       setAuthChecked(true)
     }
-  }, [router])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   if (!authChecked) return <LoadingSpinner />
 

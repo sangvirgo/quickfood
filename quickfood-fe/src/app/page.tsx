@@ -17,7 +17,8 @@ export default function RootPage() {
     // Ensure we stay in loading state until redirect actually happens
     const t = setTimeout(() => setReady(true), 500)
     return () => clearTimeout(t)
-  }, [router])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   // Always show spinner while redirect is pending
   return (
