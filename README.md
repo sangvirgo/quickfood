@@ -9,7 +9,7 @@
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-4169E1?style=for-the-badge&logo=postgresql&logoColor=white)
 ![Docker](https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white)
 ![GitHub Actions](https://img.shields.io/badge/GitHub_Actions-2088FF?style=for-the-badge&logo=githubactions&logoColor=white)
-![DigitalOcean](https://img.shields.io/badge/DigitalOcean-0080FF?style=for-the-badge&logo=digitalocean&logoColor=white)
+![AWS](https://img.shields.io/badge/AWS-232F3E?style=for-the-badge&logo=amazonwebservices&logoColor=white)
 
 **A modern, highly scalable, and fully containerized full-stack food delivery ecosystem.**  
 *Designed and engineered end-to-end (System Architecture, Backend Microservices, Frontend UI, and CI/CD Pipeline) to mimic the core functionalities of industry leaders like UberEats and DoorDash.*
@@ -33,7 +33,7 @@
 * **⚡ Concurrency & Race Condition Handling:** Successfully implemented robust transactional locking mechanisms. When multiple drivers simultaneously attempt to accept the same `WAITING` order, the system guarantees absolute data integrity—granting the order to exactly one driver while safely rejecting the others.
 * **💻 Modern Multi-Role Frontend:** Developed a fully typed, responsive web application using **Next.js (React)**, featuring distinct, role-based dashboards for Customers, Restaurant Staff, and Delivery Drivers (Shippers).
 * **🐳 Fully Containerized Infrastructure:** Streamlined the entire deployment lifecycle using **Docker Compose**, allowing the entire distributed system (databases, registry, gateway, and business services) to be spun up locally with a single command.
-* **🚀 Automated CI/CD Pipeline:** Engineered a complete **GitHub Actions** pipeline that automatically builds, tests, and deploys the entire distributed system to a **DigitalOcean** cloud droplet on every push to `main` — achieving fully automated, zero-downtime deployments with Docker layer caching for build optimization.
+* **🚀 Automated CI/CD Pipeline:** Engineered a complete **GitHub Actions** pipeline that automatically builds Docker images, pushes them to both **Docker Hub** and **Amazon ECR**, and deploys the entire distributed system to an **AWS EC2** instance on every push to `main` — achieving fully automated, zero-downtime deployments with Docker layer caching for build optimization.
 
 ---
 
@@ -96,7 +96,7 @@ flowchart LR
     subgraph "Stage 1 — Build & Push"
         B["🔨 Checkout\nSource Code"]
         B --> C["🐳 Docker\nBuildx Setup"]
-        C --> D["🔐 Login to\nDocker Hub"]
+        C --> D["🔐 Login to\nDocker Hub & AWS ECR"]
         D --> E["📦 Build & Push\n5 Service Images"]
         E --> F["💾 GHA Cache\nLayer Reuse"]
     end
@@ -104,14 +104,14 @@ flowchart LR
     F --> G
 
     subgraph "Stage 2 — Deploy"
-        G["🔑 SSH into\nDigitalOcean Droplet"]
+        G["🔑 SSH into\nAWS EC2 Instance"]
         G --> H["⬇️ Pull Latest\nDocker Images"]
         H --> I["♻️ Rolling Restart\nAll Services"]
         I --> J["🧹 Prune Old\nImages"]
         J --> K["✅ Health Check\n& Status Report"]
     end
 
-    K --> L["🌍 Live at\n165.227.147.13:3000"]
+    K --> L["🌍 Live at\n47.129.183.223:3000"]
 ```
 
 ### Key Engineering Decisions
@@ -130,8 +130,9 @@ flowchart LR
 | GitHub Secret | Purpose |
 |---|---|
 | `DOCKER_USERNAME` / `DOCKER_PASSWORD` | Authenticate to Docker Hub for image push |
-| `DROPLET_HOST` | Public IP of the DigitalOcean droplet |
-| `DROPLET_SSH_KEY` | Private SSH key for secure remote access |
+| `AWS_ACCESS_KEY_ID` / `AWS_SECRET_ACCESS_KEY` | Authenticate to AWS for ECR push and EC2 access |
+| `EC2_HOST` | Public IP of the AWS EC2 instance (stored as a GitHub Secret) |
+| `EC2_SSH_KEY` | Private SSH key for secure remote access to EC2 |
 | `NEXT_PUBLIC_API_URL` | Production API endpoint injected at frontend build time |
 
 ### Service Startup Order (Production)
@@ -149,9 +150,67 @@ postgres-db (healthcheck: pg_isready)
 
 ### Live Deployment
 
-> ✅ **18+ successful automated deployments** recorded, all passing — visible in the [GitHub Actions workflow history](https://github.com/sangvirgo/quickfood/actions).
+> ✅ **Successful automated deployments** recorded, all passing — visible in the [GitHub Actions workflow history](https://github.com/sangvirgo/quickfood/actions).
 
-The production application is accessible at: **`http://165.227.147.13:3000`** (hosted on a DigitalOcean Ubuntu 22.04 droplet, FRA1 region).
+The production application is accessible at: **[http://47.129.183.223:3000/login](http://47.129.183.223:3000/login)** (hosted on an AWS EC2 t3.micro instance, Asia Pacific — Singapore region `ap-southeast-1`).
+
+---
+
+## ☁️ AWS Deployment Architecture
+
+The QuickFood application is fully deployed on **Amazon Web Services**, leveraging managed infrastructure for reliability, scalability, and security.
+
+### Infrastructure Overview
+
+| AWS Service | Configuration | Role |
+|---|---|---|
+| **EC2 (t3.micro)** | `ap-southeast-1` (Singapore), Ubuntu 22.04 | Application host running all Docker containers |
+| **Amazon ECR** | Private registry — 5 repositories | Stores immutable Docker images for all microservices |
+| **VPC** | Default VPC with public subnet | Network isolation for the EC2 instance |
+| **Security Groups** | Inbound: 22 (SSH), 3000 (UI), 8080 (API) | Firewall rules controlling traffic to the instance |
+
+### Amazon ECR Repositories
+
+All Docker images are stored in private **Amazon ECR** repositories under the `quickfood` namespace:
+
+```
+<AWS_ACCOUNT_ID>.dkr.ecr.ap-southeast-1.amazonaws.com/
+├── quickfood/api-gateway       # Edge routing & JWT auth
+├── quickfood/core-service      # Orders, products, users
+├── quickfood/delivery-service  # Spatial tracking & dispatch
+├── quickfood/eureka-server     # Service registry
+└── quickfood/frontend          # Next.js web application
+```
+
+### Deployment Topology
+
+```mermaid
+graph TD
+    Internet["🌐 Internet"] -->|HTTP :3000| SG["🔒 Security Group\n(AWS Firewall)"]
+    Internet -->|HTTP :8080| SG
+    SG --> EC2["☁️ AWS EC2 t3.micro\n47.129.183.223\nap-southeast-1 (Singapore)"]
+
+    subgraph "EC2 Instance — Docker Compose"
+        EC2 --> FE["💻 Frontend\n(:3000) Next.js"]
+        EC2 --> GW["🌐 API Gateway\n(:8080)"]
+        EC2 --> EUR["📡 Eureka Server\n(:8761)"]
+        EC2 --> CORE["📦 Core Service\n(:8081)"]
+        EC2 --> DEL["🚚 Delivery Service\n(:8082)"]
+        EC2 --> DB["🐘 PostgreSQL + PostGIS\n(:5432)"]
+    end
+
+    ECR["🗄️ Amazon ECR\nPrivate Registry"] -->|docker pull| EC2
+    GHA["⚙️ GitHub Actions\nCI/CD"] -->|docker push| ECR
+    GHA -->|SSH deploy| EC2
+```
+
+### Live Application
+
+| Endpoint | URL |
+|---|---|
+| **Web Application** | [http://47.129.183.223:3000/login](http://47.129.183.223:3000/login) |
+| **API Gateway** | `http://47.129.183.223:8080` |
+| **Eureka Dashboard** | `http://47.129.183.223:8761` |
 
 ---
 
@@ -220,12 +279,21 @@ npm run dev
 ```
 
 ### 🌍 Application Access Points
+
+#### Local Development
 | Component | Local URL | Purpose |
 |---|---|---|
 | **Next.js Web App** | `http://localhost:3000` | Full UI for Customers, Staff, and Drivers |
 | **API Gateway** | `http://localhost:8080` | Centralized entry point for all API requests |
 | **Eureka Dashboard** | `http://localhost:8761` | Microservice instance monitoring |
 | **PostgreSQL DBs** | `localhost:5432` | Dual decoupled schemas via `init-db.sql` |
+
+#### AWS Production (EC2 — `47.129.183.223`)
+| Component | AWS URL | Purpose |
+|---|---|---|
+| **Next.js Web App** | [http://47.129.183.223:3000/login](http://47.129.183.223:3000/login) | Live production UI |
+| **API Gateway** | `http://47.129.183.223:8080` | Production API entry point |
+| **Eureka Dashboard** | `http://47.129.183.223:8761` | Live service registry monitoring |
 
 ---
 
@@ -246,7 +314,9 @@ A pre-configured Postman collection is included for rapid API evaluation.
 quickfood/
 ├── .github/
 │   └── workflows/
-│       └── deploy.yml          # GitHub Actions CI/CD pipeline
+│       └── deploy.yml          # GitHub Actions CI/CD pipeline (Docker Hub + AWS ECR + EC2)
+├── AWS/
+│   └── *.png                   # AWS deployment screenshots (EC2, ECR, running app)
 ├── BACKEND/
 │   ├── api-gateway/            # Centralized edge routing & JWT verification
 │   ├── eureka-server/          # Netflix Eureka Service Registry
