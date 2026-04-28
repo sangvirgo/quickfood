@@ -104,12 +104,12 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
     });
   }
 
-  Future<void> _placeOrder(BuildContext sheetContext) async {
+  Future<void> _placeOrder() async {
     if (_deliveryAddress.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Vui lòng nhập địa chỉ giao hàng'),
-          backgroundColor: const Color(0xFFEF4444),
+          backgroundColor: Color(0xFFEF4444),
         ),
       );
       return;
@@ -137,11 +137,11 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
         _cartItems.clear();
         _deliveryAddress = '';
       });
-      Navigator.of(sheetContext).pop();
+      Navigator.of(context).pop();
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Đặt hàng thành công!'),
-          backgroundColor: const Color(0xFF10B981),
+          backgroundColor: Color(0xFF10B981),
         ),
       );
       if (!mounted) {
@@ -217,7 +217,7 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
                         ],
                       ),
                     );
-                  }).toList(),
+                  }),
                   const SizedBox(height: 12),
                   TextField(
                     decoration: const InputDecoration(
@@ -245,7 +245,7 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
                               setSheetState(() {
                                 placing = true;
                               });
-                              await _placeOrder(sheetContext);
+                              await _placeOrder();
                               if (mounted) {
                                 setSheetState(() {
                                   placing = false;
@@ -259,7 +259,7 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
                               child: CircularProgressIndicator(
                                 strokeWidth: 2,
                                 valueColor: AlwaysStoppedAnimation<Color>(
-                                  const Color(0xFFE8521A),
+                                  Color(0xFFE8521A),
                                 ),
                               ),
                             )
@@ -314,7 +314,7 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
                     child: Text(
                       '$cartCount',
                       style: const TextStyle(
-                        color: const Color(0xFFFFFFFF),
+                        color: Color(0xFFFFFFFF),
                         fontSize: 12,
                         fontWeight: FontWeight.bold,
                       ),
@@ -328,9 +328,7 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
       body: _loading
           ? const Center(
               child: CircularProgressIndicator(
-                valueColor: AlwaysStoppedAnimation<Color>(
-                  const Color(0xFFE8521A),
-                ),
+                valueColor: AlwaysStoppedAnimation<Color>(Color(0xFFE8521A)),
               ),
             )
           : GridView.builder(
@@ -371,7 +369,7 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
                             ),
                             child: const Icon(
                               Icons.fastfood,
-                              color: const Color(0xFFE8521A),
+                              color: Color(0xFFE8521A),
                               size: 40,
                             ),
                           ),
@@ -387,7 +385,7 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
                         Text(
                           _formatPrice(product['price']),
                           style: const TextStyle(
-                            color: const Color(0xFFE8521A),
+                            color: Color(0xFFE8521A),
                             fontWeight: FontWeight.bold,
                           ),
                         ),

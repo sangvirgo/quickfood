@@ -109,7 +109,7 @@ class _StaffDashboardScreenState extends State<StaffDashboardScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Đơn hàng đã được duyệt'),
-          backgroundColor: const Color(0xFF10B981),
+          backgroundColor: Color(0xFF10B981),
         ),
       );
     } on DioException catch (e) {
@@ -184,10 +184,7 @@ class _StaffDashboardScreenState extends State<StaffDashboardScreen> {
           children: [
             Text(
               title,
-              style: const TextStyle(
-                color: const Color(0xFF78716C),
-                fontSize: 12,
-              ),
+              style: const TextStyle(color: Color(0xFF78716C), fontSize: 12),
             ),
             const SizedBox(height: 6),
             Text(
@@ -205,11 +202,7 @@ class _StaffDashboardScreenState extends State<StaffDashboardScreen> {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: const [
-          Icon(
-            Icons.check_circle_outline,
-            size: 72,
-            color: const Color(0xFF10B981),
-          ),
+          Icon(Icons.check_circle_outline, size: 72, color: Color(0xFF10B981)),
           SizedBox(height: 12),
           Text(
             'Tất cả đã xử lý! 🎉',
@@ -228,9 +221,7 @@ class _StaffDashboardScreenState extends State<StaffDashboardScreen> {
         child: Column(
           children: [
             DrawerHeader(
-              decoration: const BoxDecoration(
-                color: const Color(0xFFE8521A),
-              ),
+              decoration: const BoxDecoration(color: Color(0xFFE8521A)),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -243,14 +234,14 @@ class _StaffDashboardScreenState extends State<StaffDashboardScreen> {
                     ),
                     child: const Icon(
                       Icons.restaurant,
-                      color: const Color(0xFFFFFFFF),
+                      color: Color(0xFFFFFFFF),
                     ),
                   ),
                   const SizedBox(height: 12),
                   const Text(
                     'QuickFood',
                     style: TextStyle(
-                      color: const Color(0xFFFFFFFF),
+                      color: Color(0xFFFFFFFF),
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
                     ),
@@ -258,7 +249,7 @@ class _StaffDashboardScreenState extends State<StaffDashboardScreen> {
                   const SizedBox(height: 4),
                   Text(
                     _staffName.isEmpty ? 'Nhân viên' : _staffName,
-                    style: const TextStyle(color: const Color(0xB3FFFFFF)),
+                    style: const TextStyle(color: Color(0xB3FFFFFF)),
                   ),
                 ],
               ),
@@ -321,7 +312,7 @@ class _StaffDashboardScreenState extends State<StaffDashboardScreen> {
                 ? const Center(
                     child: CircularProgressIndicator(
                       valueColor: AlwaysStoppedAnimation<Color>(
-                        const Color(0xFFE8521A),
+                        Color(0xFFE8521A),
                       ),
                     ),
                   )
@@ -362,13 +353,11 @@ class _StaffDashboardScreenState extends State<StaffDashboardScreen> {
                                 ),
                                 child: Text('- $name x$quantity'),
                               );
-                            }).toList(),
+                            }),
                             const SizedBox(height: 8),
                             Text(
                               'Địa chỉ: ${order['deliveryAddress'] ?? ''}',
-                              style: const TextStyle(
-                                color: const Color(0xFF78716C),
-                              ),
+                              style: const TextStyle(color: Color(0xFF78716C)),
                             ),
                             const SizedBox(height: 12),
                             SizedBox(

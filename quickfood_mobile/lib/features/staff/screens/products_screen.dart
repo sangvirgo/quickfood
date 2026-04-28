@@ -232,7 +232,7 @@ class _StaffProductsScreenState extends State<StaffProductsScreen> {
             if (!mounted) {
               return;
             }
-            Navigator.of(sheetContext).pop();
+            Navigator.of(context).pop();
             _loadProducts();
           } on DioException catch (e) {
             _showError(DioClient.handleError(e));
@@ -307,7 +307,7 @@ class _StaffProductsScreenState extends State<StaffProductsScreen> {
                                 child: CircularProgressIndicator(
                                   strokeWidth: 2,
                                   valueColor: AlwaysStoppedAnimation<Color>(
-                                    const Color(0xFFE8521A),
+                                    Color(0xFFE8521A),
                                   ),
                                 ),
                               )
@@ -365,7 +365,7 @@ class _StaffProductsScreenState extends State<StaffProductsScreen> {
                 ? const Center(
                     child: CircularProgressIndicator(
                       valueColor: AlwaysStoppedAnimation<Color>(
-                        const Color(0xFFE8521A),
+                        Color(0xFFE8521A),
                       ),
                     ),
                   )
@@ -395,7 +395,7 @@ class _StaffProductsScreenState extends State<StaffProductsScreen> {
                                 child: imageUrl.isEmpty
                                     ? const Icon(
                                         Icons.image_not_supported,
-                                        color: const Color(0xFF78716C),
+                                        color: Color(0xFF78716C),
                                       )
                                     : Image.network(
                                         imageUrl,
@@ -404,7 +404,7 @@ class _StaffProductsScreenState extends State<StaffProductsScreen> {
                                             (context, error, stackTrace) {
                                               return const Icon(
                                                 Icons.broken_image_outlined,
-                                                color: const Color(0xFF78716C),
+                                                color: Color(0xFF78716C),
                                               );
                                             },
                                       ),
@@ -425,7 +425,7 @@ class _StaffProductsScreenState extends State<StaffProductsScreen> {
                                   Text(
                                     _formatPrice(product['price']),
                                     style: const TextStyle(
-                                      color: const Color(0xFFE8521A),
+                                      color: Color(0xFFE8521A),
                                       fontWeight: FontWeight.bold,
                                     ),
                                   ),

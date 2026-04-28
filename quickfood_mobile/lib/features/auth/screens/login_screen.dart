@@ -166,7 +166,7 @@ class _LoginScreenState extends State<LoginScreen>
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Đăng ký thành công!'),
-          backgroundColor: const Color(0xFF10B981),
+          backgroundColor: Color(0xFF10B981),
         ),
       );
     } on DioException catch (e) {
@@ -237,7 +237,7 @@ class _LoginScreenState extends State<LoginScreen>
                     Text(
                       'QuickFood',
                       style: TextStyle(
-                        color: const Color(0xFFFFFFFF),
+                        color: Color(0xFFFFFFFF),
                         fontSize: 28,
                         fontWeight: FontWeight.bold,
                         letterSpacing: 0.5,
@@ -246,10 +246,7 @@ class _LoginScreenState extends State<LoginScreen>
                     SizedBox(height: 6),
                     Text(
                       'Giao nhanh, món ngon mỗi ngày',
-                      style: TextStyle(
-                        color: const Color(0xB3FFFFFF),
-                        fontSize: 13,
-                      ),
+                      style: TextStyle(color: Color(0xB3FFFFFF), fontSize: 13),
                     ),
                   ],
                 ),
@@ -316,7 +313,7 @@ class _LoginScreenState extends State<LoginScreen>
                                     child: CircularProgressIndicator(
                                       strokeWidth: 2,
                                       valueColor: AlwaysStoppedAnimation<Color>(
-                                        const Color(0xFFE8521A),
+                                        Color(0xFFE8521A),
                                       ),
                                     ),
                                   )
@@ -361,7 +358,7 @@ class _LoginScreenState extends State<LoginScreen>
                         ),
                         const SizedBox(height: 12),
                         DropdownButtonFormField<String>(
-                          value: _registerRole,
+                          initialValue: _registerRole,
                           decoration: _inputDecoration('Vai trò'),
                           items: const [
                             DropdownMenuItem(
@@ -430,7 +427,7 @@ class _LoginScreenState extends State<LoginScreen>
                                     child: CircularProgressIndicator(
                                       strokeWidth: 2,
                                       valueColor: AlwaysStoppedAnimation<Color>(
-                                        const Color(0xFFE8521A),
+                                        Color(0xFFE8521A),
                                       ),
                                     ),
                                   )

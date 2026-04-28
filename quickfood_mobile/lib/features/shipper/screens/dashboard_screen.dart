@@ -251,7 +251,7 @@ class _ShipperDashboardScreenState extends State<ShipperDashboardScreen> {
                 const SizedBox(height: 4),
                 Text(
                   isBusy ? 'Đơn đang xử lý' : '$count đơn chờ',
-                  style: const TextStyle(color: const Color(0xFF78716C)),
+                  style: const TextStyle(color: Color(0xFF78716C)),
                 ),
               ],
             ),
@@ -299,7 +299,7 @@ class _ShipperDashboardScreenState extends State<ShipperDashboardScreen> {
                       child: CircularProgressIndicator(
                         strokeWidth: 2,
                         valueColor: AlwaysStoppedAnimation<Color>(
-                          const Color(0xFFFFFFFF),
+                          Color(0xFFFFFFFF),
                         ),
                       ),
                     )
@@ -369,7 +369,7 @@ class _ShipperDashboardScreenState extends State<ShipperDashboardScreen> {
               const SizedBox(height: 6),
               Text(
                 address.toString(),
-                style: const TextStyle(color: const Color(0xFF78716C)),
+                style: const TextStyle(color: Color(0xFF78716C)),
               ),
               const SizedBox(height: 12),
               SizedBox(

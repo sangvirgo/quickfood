@@ -104,9 +104,7 @@ class _CustomerOrdersScreenState extends State<CustomerOrdersScreen> {
       body: _loading
           ? const Center(
               child: CircularProgressIndicator(
-                valueColor: AlwaysStoppedAnimation<Color>(
-                  const Color(0xFFE8521A),
-                ),
+                valueColor: AlwaysStoppedAnimation<Color>(Color(0xFFE8521A)),
               ),
             )
           : ListView.separated(
@@ -153,7 +151,9 @@ class _CustomerOrdersScreenState extends State<CustomerOrdersScreen> {
                                 vertical: 4,
                               ),
                               decoration: BoxDecoration(
-                                color: _statusColor(status).withOpacity(0.15),
+                                color: _statusColor(
+                                  status,
+                                ).withValues(alpha: 0.15),
                                 borderRadius: BorderRadius.circular(12),
                               ),
                               child: Text(
@@ -171,7 +171,7 @@ class _CustomerOrdersScreenState extends State<CustomerOrdersScreen> {
                         Text(
                           'Tổng tiền: ${_formatPrice(order['totalPrice'])}',
                           style: const TextStyle(
-                            color: const Color(0xFFE8521A),
+                            color: Color(0xFFE8521A),
                             fontWeight: FontWeight.bold,
                           ),
                         ),
@@ -180,7 +180,7 @@ class _CustomerOrdersScreenState extends State<CustomerOrdersScreen> {
                           Text(
                             createdLabel,
                             style: const TextStyle(
-                              color: const Color(0xFF78716C),
+                              color: Color(0xFF78716C),
                               fontSize: 12,
                             ),
                           ),
@@ -318,12 +318,12 @@ class _OrderDetailSheetState extends State<_OrderDetailSheet> {
                   ],
                 ),
               );
-            }).toList(),
+            }),
             const SizedBox(height: 12),
             Text(
               'Tổng cộng: ${_formatPrice(widget.order['totalPrice'])}',
               style: const TextStyle(
-                color: const Color(0xFFE8521A),
+                color: Color(0xFFE8521A),
                 fontWeight: FontWeight.bold,
               ),
             ),
@@ -338,7 +338,7 @@ class _OrderDetailSheetState extends State<_OrderDetailSheet> {
                 const Center(
                   child: CircularProgressIndicator(
                     valueColor: AlwaysStoppedAnimation<Color>(
-                      const Color(0xFFE8521A),
+                      Color(0xFFE8521A),
                     ),
                   ),
                 )
@@ -359,7 +359,7 @@ class _OrderDetailSheetState extends State<_OrderDetailSheet> {
                   child: const Text(
                     'Mở Google Maps',
                     style: TextStyle(
-                      color: const Color(0xFFE8521A),
+                      color: Color(0xFFE8521A),
                       decoration: TextDecoration.underline,
                     ),
                   ),
