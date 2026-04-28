@@ -97,14 +97,17 @@ class _LoginScreenState extends State<LoginScreen>
       final data = response.data;
       if (data is Map) {
         final token = data['token'];
-        final user = data['user'];
-        if (token is String && user is Map<String, dynamic>) {
+        // Thay vì data['user'], build user map từ flat response
+        if (token is String) {
+          final user = <String, dynamic>{
+            'id': data['id'],
+            'email': data['email'],
+            'role': data['role'],
+          };
           await AuthStorage.saveToken(token);
           await AuthStorage.saveUser(user);
           final role = user['role'] is String ? user['role'] as String : '';
-          if (!mounted) {
-            return;
-          }
+          if (!mounted) return;
           context.go(_getRoleRoute(role));
           return;
         }
@@ -279,6 +282,9 @@ class _LoginScreenState extends State<LoginScreen>
                         TextFormField(
                           controller: _loginPasswordController,
                           obscureText: _loginObscure,
+                          enableSuggestions: false,      // thêm dòng này
+                          autocorrect: false,            // thêm dòng này
+                          autofillHints: const [AutofillHints.password],  // thêm dòng này
                           decoration: _inputDecoration('Mật khẩu').copyWith(
                             suffixIcon: IconButton(
                               icon: Icon(

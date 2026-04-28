@@ -1,5 +1,8 @@
 server:
   port: 8081
+  max-http-request-header-size: 64KB
+  tomcat:
+    max-http-form-post-size: 10MB
 
 spring:
   application:

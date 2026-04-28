@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
+import '../../../core/storage/auth_storage.dart';
 
 import '../../../core/network/dio_client.dart';
 
@@ -291,6 +292,18 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
           ),
         ),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.receipt_long_outlined),
+            onPressed: () => context.push('/orders'),
+          ),
+          IconButton(
+            icon: const Icon(Icons.logout),
+            onPressed: () async {
+              await AuthStorage.clearAll();
+              if (!context.mounted) return;
+              context.go('/login');
+            },
+          ),
           Stack(
             alignment: Alignment.center,
             children: [

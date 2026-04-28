@@ -22,7 +22,10 @@ public class CorsConfig {
                 "http://localhost:3000",
                 "http://165.227.147.13:3000",
                 "http://localhost:5173",
-                "https://sandbox.vnpayment.vn"
+                "https://sandbox.vnpayment.vn",
+                "http://10.0.2.2:8080",    // Android emulator → host machine
+                "http://10.0.2.2",         // Android emulator
+                "http://localhost:8080" 
         ));
         
         corsConfig.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));

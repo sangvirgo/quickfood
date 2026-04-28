@@ -343,8 +343,7 @@ class _StaffDashboardScreenState extends State<StaffDashboardScreen> {
                             const SizedBox(height: 8),
                             ...items.asMap().entries.map((entry) {
                               final map = entry.value as Map;
-                              final product = map['product'] as Map?;
-                              final name = product?['name'] ?? '';
+                              final name = map['productName']?.toString() ?? '';
                               final quantity = map['quantity'] ?? 0;
                               return Padding(
                                 key: ValueKey('${order['id']}_${entry.key}'),
@@ -356,7 +355,7 @@ class _StaffDashboardScreenState extends State<StaffDashboardScreen> {
                             }),
                             const SizedBox(height: 8),
                             Text(
-                              'Địa chỉ: ${order['deliveryAddress'] ?? ''}',
+                              'Giao tới: ${order['deliveryAddress'] ?? 'Bởi Shipper'}',
                               style: const TextStyle(color: Color(0xFF78716C)),
                             ),
                             const SizedBox(height: 12),

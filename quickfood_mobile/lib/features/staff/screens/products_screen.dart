@@ -167,6 +167,20 @@ class _StaffProductsScreenState extends State<StaffProductsScreen> {
   }
 
   void _openProductForm({Map<String, dynamic>? product}) {
+    // Khai báo controllers ở đây, NGOÀI builder
+    final nameController = TextEditingController(
+      text: product?['name']?.toString() ?? '',
+    );
+    final priceController = TextEditingController(
+      text: product?['price']?.toString() ?? '',
+    );
+    final stockController = TextEditingController(
+      text: product?['stock']?.toString() ?? '',
+    );
+    final imageController = TextEditingController(
+      text: product?['imageUrl']?.toString() ?? '',
+    );
+
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -175,18 +189,6 @@ class _StaffProductsScreenState extends State<StaffProductsScreen> {
         borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
       ),
       builder: (sheetContext) {
-        final nameController = TextEditingController(
-          text: product?['name']?.toString() ?? '',
-        );
-        final priceController = TextEditingController(
-          text: product?['price']?.toString() ?? '',
-        );
-        final stockController = TextEditingController(
-          text: product?['stock']?.toString() ?? '',
-        );
-        final imageController = TextEditingController(
-          text: product?['imageUrl']?.toString() ?? '',
-        );
         bool saving = false;
 
         Future<void> submit(
