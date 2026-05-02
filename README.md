@@ -152,6 +152,33 @@ postgres-db (healthcheck: pg_isready)
 
 > ✅ **Successful automated deployments** recorded, all passing — visible in the [GitHub Actions workflow history](https://github.com/sangvirgo/quickfood/actions).
 
+## 🖥️ Screenshots
+
+<div align="center">
+  <img src="https://github.com/user-attachments/assets/a86df225-ca2a-4fbf-87e7-83859b1b0fae" width="800" alt="Eureka Dashboard"/>
+  <p><em>Eureka Dashboard — all 4 services registered and healthy</em></p>
+</div>
+
+<div align="center">
+  <img src="https://github.com/user-attachments/assets/e758111c-612a-4902-a686-82759d6e4943" width="800" alt="DigitalOcean Droplet"/>
+  <p><em>DigitalOcean Droplet — production backend running live</em></p>
+</div>
+
+<div align="center">
+  <img src="https://github.com/user-attachments/assets/a1affe86-8e78-421a-bf91-e0a3c79f188a" width="800" alt="Staff Dashboard"/>
+  <p><em>Staff dashboard — order & restaurant management</em></p>
+</div>
+
+<div align="center">
+  <img src="https://github.com/user-attachments/assets/0739a2dc-77a1-4dd0-95b1-d4f1d37ba6ff" width="800" alt="Shipper Registration"/>
+  <p><em>Shipper registration — age validation (must be 13+ to register)</em></p>
+</div>
+
+<div align="center">
+  <img src="https://github.com/user-attachments/assets/af2165fc-989a-47d8-a2f7-c48132047b6f" width="800" alt="GitHub Actions CI/CD"/>
+  <p><em>GitHub Actions — 20+ successful zero-touch deployments</em></p>
+</div>
+
 The production application is accessible at: **[http://47.129.183.223:3000/login](http://47.129.183.223:3000/login)** (hosted on an AWS EC2 t3.micro instance, Asia Pacific — Singapore region `ap-southeast-1`).
 
 ---
@@ -209,6 +236,8 @@ graph TD
 | Endpoint | URL |
 |---|---|
 | **Web Application** | [http://47.129.183.223:3000/login](http://47.129.183.223:3000/login) |
+> 📂 Full AWS deployment evidence (ECR repositories, EC2 instance, running containers):  
+> [`/AWS` folder on GitHub](https://github.com/sangvirgo/quickfood/tree/main/AWS)
 | **API Gateway** | `http://47.129.183.223:8080` |
 | **Eureka Dashboard** | `http://47.129.183.223:8761` |
 
